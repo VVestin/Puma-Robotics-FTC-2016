@@ -1,11 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 /**
  * Created by Me on 9/24/16.
  */
+
+@Autonomous(name="MotorOp", group="MotorTest")
 public class MotorOp extends OpMode {
     private DcMotor motor;
 
@@ -14,6 +17,7 @@ public class MotorOp extends OpMode {
     }
 
     public void loop(){
-        motor.setPower(1);
+        motor.setPower(.2
+        );
     }
 }
