@@ -1,0 +1,724 @@
+package com.qualcomm.ftcrobotcontroller.opmodes;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.RegionIterator;
+import android.graphics.YuvImage;
+import android.hardware.Camera;
+
+import com.qualcomm.ftcrobotcontroller.CameraPreview;
+import com.qualcomm.ftcrobotcontroller.FtcRobotControllerActivity;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.hardware.LightSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
+import com.qualcomm.robotcore.hardware.UltrasonicSensor;
+
+import java.io.ByteArrayOutputStream;
+
+/**
+ * Created by ftcuser2 on 10/31/15.
+ */
+public class AutonomousOp extends LinearOpMode {
+
+    // Constants
+    private static final double TICKS_PER_INCH = 5 * 1440 / 60; // TODO adjust based on calculations
+    private static final double LIGHT_THRESHOLD = 30, COLOR_THRESHOLD = 15;
+
+    private static final int THRESHOLD = 40;
+    private static final int RED_THRESHOLD = 80;
+
+    private static final double LEFT_POWER = 1.3;
+    private static final double RIGHT_POWER = 1.40;
+
+    // Camera variables
+    private Camera camera;
+    public CameraPreview preview;
+    public Bitmap image;
+    private int width;
+    private int height;
+    private YuvImage yuvImage = null;
+    private int looped = 0;
+    private String data;
+
+    // Hardware
+    private DcMotor right,left,extend,pivot,encoderRight,encoderLeft;
+    private DcMotorController encoders;
+    private Servo climberDrop;
+    private Servo rightBlock, leftBlock;
+    private GyroSensor gyroSensor;
+    private ColorSensor colorSensor;
+    private LightSensor lightSensor;
+    private UltrasonicSensor ultrasonicSensor;
+    private UltrasonicSensor bob;
+
+    // Variables for autonomous options
+    private int position;
+    private boolean redTeam;
+    private double heading;
+
+    private long startTime;
+
+    // Variables for using gyro
+    private double gyroOffset;
+    private long lastTime;
+
+    //private double whiteLineHeading;
+    private double initLightVal;
+    private int grey;
+
+    public void runOpMode() throws InterruptedException{
+        // Initialise match dependant variables
+        position = 1;//TODO change for each match
+        redTeam = false; //TODO  change for each match
+
+        // Get hardware from hardwaremap
+        right=hardwareMap.dcMotor.get("motor_2");
+        left=hardwareMap.dcMotor.get("motor_1");
+        extend=hardwareMap.dcMotor.get("extend");
+        pivot=hardwareMap.dcMotor.get("pivot");
+        encoderLeft=hardwareMap.dcMotor.get("encoder_1");
+        encoderRight=hardwareMap.dcMotor.get("encoder_2");
+        climberDrop = hardwareMap.servo.get("climberDrop");
+        rightBlock = hardwareMap.servo.get("right_block");
+        leftBlock = hardwareMap.servo.get("left_block");
+        gyroSensor=hardwareMap.gyroSensor.get("gyro");
+        colorSensor=hardwareMap.colorSensor.get("color");
+        lightSensor=hardwareMap.lightSensor.get("light");
+        ultrasonicSensor=hardwareMap.ultrasonicSensor.get("ultrasonic");
+        bob=hardwareMap.ultrasonicSensor.get("ultra");
+        encoders=encoderLeft.getController();
+
+        // Set up camera
+        /*camera = ((FtcRobotControllerActivity)hardwareMap.appContext).camera;
+        camera.setPreviewCallback(previewCallback);
+        Camera.Parameters parameters = camera.getParameters();
+        data = parameters.flatten();
+        ((FtcRobotControllerActivity) hardwareMap.appContext).initPreview(camera, this, previewCallback);*/
+
+        // Initialise motors and encoders
+        encoderLeft.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        encoderRight.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        encoders.setMotorControllerDeviceMode(DcMotorController.DeviceMode.READ_ONLY);
+        left.setDirection(DcMotor.Direction.REVERSE);
+
+        lightSensor.enableLed(true);
+
+        // Wait for start to be pressed on Driver Station
+        waitForStart();
+        startTime = System.currentTimeMillis();
+
+        rightBlock.setPosition(1);
+        leftBlock.setPosition(0);
+        Thread.sleep(300);
+
+        //Inital Light sensor value
+        initLightVal=lightSensor.getLightDetectedRaw();
+        grey=colorSensor.green();
+        telemetry.addData("initLightVal", initLightVal);
+        telemetry.addData("initColorVal", grey);
+
+        // Calculate gyroOffset and initialise gyro values
+        double sum = 0;
+        for (int i = 0; i < 100; i++) {
+            sum += gyroSensor.getRotation();
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        gyroOffset = sum / 100;
+        lastTime=System.currentTimeMillis();
+
+        // TODO sequence of tasks changes on gameday depending on alliance team
+        goToBeacon();
+        // turn(-10, .6);
+    }
+
+    // Decode rgb values from a pixel
+    private int red(int pixel) {
+        return (pixel >> 16) & 0xff;
+    }
+
+    private int green(int pixel) { return (pixel >> 8) & 0xff; }
+
+    private int blue(int pixel) { return pixel & 0xff; }
+
+    // Code for using Camera
+    private Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
+        public void onPreviewFrame(byte[] data, Camera camera)
+        {
+            Camera.Parameters parameters = camera.getParameters();
+            width = parameters.getPreviewSize().width;
+            height = parameters.getPreviewSize().height;
+            yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
+            looped += 1;
+        }
+    };
+
+    private void convertImage() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuvImage.compressToJpeg(new Rect(0, 0, width, height), 0, out);
+        byte[] imageBytes = out.toByteArray();
+        image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+    }
+
+    // Method to go to beacon from start based on team color and position
+    public void goToBeacon() throws InterruptedException {
+        //put arm into position to drop climbers
+        extend.setDirection(DcMotor.Direction.REVERSE);
+        pivot.setDirection(DcMotor.Direction.REVERSE);
+        if(redTeam){
+            if(position==1){
+                moveForwardInches(10, .5);
+                turn(-47, .7);
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+                moveForwardInches(78.5, .7);//82 inches
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+            }else{
+                moveForwardInches(4, .5);
+                turn(-54, .7);
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+                moveForwardInches(96.5, .7);
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+            }
+        }else{
+            if(position==1){
+                moveForwardInches(10, .5);
+                turn(41, .7);
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+                moveForwardInches(76.5, .7);//82 inches
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+            }else{
+                moveForwardInches(4, .5);
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+                turn(48.5, .7);
+                moveForwardInches(100, .7);
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+            }
+        }
+
+        turn(180, 1);
+        rightBlock.setPosition(1);
+        leftBlock.setPosition(0);
+        heading -= 180;
+        computeHeading();
+        moveAlongWhiteLine();
+
+        // Take a picture
+        telemetry.addData("Looped", looped);
+
+        Thread.sleep(500);
+
+        if (false) { // should hit beacon button
+            convertImage();
+
+            telemetry.addData("Anaylsing Image", true);
+
+            int redCenter = getRedCenter();
+            int blueCenter = getBlueCenter();
+
+            if(redCenter < blueCenter){
+                telemetry.addData("color: ", "red blue");
+            }else{
+                telemetry.addData("color: ", "blue red");
+            }
+            telemetry.addData("red center: ", redCenter);
+            telemetry.addData("blue center: ", blueCenter);
+            telemetry.addData("width: ", width);
+            telemetry.addData("height: ", height);
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Turn to face the button
+            if (((redCenter < blueCenter) && redTeam) || ((blueCenter <= redCenter) && !redTeam)){
+                telemetry.addData("turning", "left");
+                while(averageUSReadings() < 40 && System.currentTimeMillis() - startTime < 29000){
+                    left.setPower(-.6*LEFT_POWER);
+                    right.setPower(.6*RIGHT_POWER);
+                }
+                Thread.sleep(100);
+                left.setPower(0);
+                right.setPower(0);
+                while(averageUSReadings() > 40 && System.currentTimeMillis() - startTime < 29000){
+                    left.setPower(.6*LEFT_POWER);
+                    right.setPower(-.6*RIGHT_POWER);
+                }
+                left.setPower(0);
+                right.setPower(0);
+            } else {
+                telemetry.addData("turning", "right");
+                if (averageUSReadings() < 40) {
+                    while(averageUSReadings()<40 && System.currentTimeMillis() - startTime < 29000){
+                        left.setPower(.6*LEFT_POWER);
+                        right.setPower(-.6*RIGHT_POWER);
+                    }
+                    Thread.sleep(100);
+                    left.setPower(0);
+                    right.setPower(0);
+                }
+                while(averageUSReadings()>40 && System.currentTimeMillis() - startTime < 29000){
+                    left.setPower(-.6*LEFT_POWER);
+                    right.setPower(.6*RIGHT_POWER);
+                }
+                left.setPower(0);
+                right.setPower(0);
+            }
+
+            right.setPower(-.5);
+            left.setPower(-.5);
+            double startHeading=heading;
+            int initEncoderPosition=encoderLeft.getCurrentPosition();
+            int currentEncoderPosition=encoderLeft.getCurrentPosition();
+            long initTime = System.currentTimeMillis();
+            while((Math.abs(currentEncoderPosition - initEncoderPosition) < 33 / 2.54 * TICKS_PER_INCH && System.currentTimeMillis() - initTime < 2000) && System.currentTimeMillis() - startTime < 29000){
+                computeHeading();
+                currentEncoderPosition = encoderLeft.getCurrentPosition();
+            }
+            left.setPower(0);
+            right.setPower(0);
+
+
+            if (((redCenter < blueCenter) && redTeam) || ((blueCenter <= redCenter) && !redTeam)){
+                left.setPower(.5*LEFT_POWER);
+                right.setPower(-.5*RIGHT_POWER);
+                Thread.sleep(2500);
+            }else{
+                left.setPower(-.5*LEFT_POWER);
+                right.setPower(.5* RIGHT_POWER);
+                Thread.sleep(2000);
+            }
+
+            left.setPower(-.5);
+            right.setPower(-.5);
+            Thread.sleep(500);
+
+            moveForwardInches(2, .5);
+
+        } else {
+
+        }
+
+        if(System.currentTimeMillis()-startTime<24000){
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            if (redTeam){
+                turn(-5,.65);
+            }else{
+                turn(-5,.65);
+            }
+            pivot.setPower(1);
+            extend.setPower(1);
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            pivot.setPower(0);
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            try {
+                Thread.sleep(4550);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            extend.setPower(0);
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            climberDrop.setPosition(0);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            climberDrop.setPosition(0);
+            /*for (double i = 0; i < 0.7 && System.currentTimeMillis() - startTime < 29000; i += .05){
+                climberDrop.setPosition(i);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }*/
+            climberDrop.setPosition(1);
+        }
+
+    }
+
+    private void moveAlongWhiteLine() throws InterruptedException {
+        // Set grey value by reading color sensor
+        int c=colorSensor.green();
+        // Turn until we have detected white
+        double initHeading=heading;
+        boolean leftTurn = redTeam; // turn left if red, turn right if blue
+        if (!leftTurn) {
+            left.setPower(.6 * LEFT_POWER);
+            right.setPower(-.6 * RIGHT_POWER);
+        } else {
+            left.setPower(-.6 * LEFT_POWER);
+            right.setPower(.6 * RIGHT_POWER);
+        }
+
+        while(c < grey + COLOR_THRESHOLD && System.currentTimeMillis() - startTime < 29000){ // TODO adjust this threshold
+            computeHeading();
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            if(Math.abs(initHeading-heading) > 120 - (!leftTurn ? 20 : 0)){
+                moveForwardInches(5, -.6);//
+                leftTurn = !leftTurn;
+                initHeading=heading;
+                if (!leftTurn) {
+                    left.setPower(.6 * LEFT_POWER);
+                    right.setPower(-.6 * RIGHT_POWER);
+                } else {
+                    left.setPower(-.6 * LEFT_POWER);
+                    right.setPower(.6 * RIGHT_POWER);
+                }
+            }
+            c=colorSensor.green();
+            telemetry.addData("color: ", colorSensor.green());
+        }
+
+        int white = c + 5;
+
+        left.setPower(0);
+        right.setPower(0);
+
+        telemetry.addData("foundWhiteLine", "yes");
+
+        try {
+            Thread.sleep(500);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //straighten out robot
+        double lightVal=lightSensor.getLightDetectedRaw();
+        while(lightVal < initLightVal + LIGHT_THRESHOLD && System.currentTimeMillis() - startTime < 29000) {//TODO calibrate threshold
+            computeHeading();
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            left.setPower(-.4);
+            right.setPower(-.4);
+            lightVal=lightSensor.getLightDetectedRaw();
+        }
+
+        left.setPower(0);
+        right.setPower(0);
+
+        telemetry.addData("heading", heading);
+        telemetry.addData("foundWhiteLineWithLightSensor", "yes");
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if(heading < -90 && redTeam || heading < 90 && !redTeam){
+            left.setPower(.6 * LEFT_POWER);
+            right.setPower(-.6 * RIGHT_POWER);
+            leftTurn=false;
+        }else{
+            left.setPower(-.6 * LEFT_POWER);
+            right.setPower(.6 * RIGHT_POWER);
+            leftTurn=true;
+        }
+
+        //while(averageUSReadings() > 30){
+        //    telemetry.addData("Ultrasonic", bob.getUltrasonicLevel());
+        //}
+
+        c = 0;
+        initHeading=heading;
+        if (!leftTurn) {
+            left.setPower(.6 * LEFT_POWER);
+            right.setPower(-.6 * RIGHT_POWER);
+        } else {
+            left.setPower(-.6 * LEFT_POWER);
+            right.setPower(.6 * RIGHT_POWER);
+        }
+        while(c < grey + COLOR_THRESHOLD && System.currentTimeMillis() - startTime < 29000){ // TODO adjust this threshold
+            computeHeading();
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            if(Math.abs(initHeading-heading)>120 - (!leftTurn ? 20 : 0)){
+                if (!leftTurn) {
+                    left.setPower(.6 * LEFT_POWER);
+                    right.setPower(-.6 * RIGHT_POWER);
+                } else {
+                    left.setPower(-.6 * LEFT_POWER);
+                    right.setPower(.6 * RIGHT_POWER);
+                }
+                leftTurn = !leftTurn;
+                initHeading=heading;
+            }
+            c=colorSensor.green();
+            telemetry.addData("color: ", colorSensor.green());
+        }
+
+
+        left.setPower(0);
+        right.setPower(0);
+        try {
+            Thread.sleep(500);//power level over 9000
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        double distance = 0;
+        while((distance < 17 || distance > 21 || distance==0) && System.currentTimeMillis() - startTime < 29000) {
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            double val = 0;
+            int numReads = 0;
+            while(numReads < 3 && System.currentTimeMillis() - startTime < 29000){
+                rightBlock.setPosition(1);
+                leftBlock.setPosition(0);
+                double reading = ultrasonicSensor.getUltrasonicLevel();
+                if (reading != 0) {
+                    val += reading;
+                    numReads++;
+                }
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            distance=val/numReads;
+            if(distance < 17){
+                left.setPower(.5);
+                right.setPower(.5);
+            }else if(distance > 21){
+                left.setPower(-.5);
+                right.setPower(-.5);
+            }
+            telemetry.addData("ultrasonic: ", distance);
+
+        }
+
+        left.setPower(0);
+        right.setPower(0);
+        telemetry.addData("done moving", "true");
+    }
+
+    public void moveForward(int ticks, double power) {
+        right.setPower(power);
+        left.setPower(power);
+        double startHeading=heading;
+        int initEncoderPosition=encoderLeft.getCurrentPosition();
+        int currentEncoderPosition=encoderLeft.getCurrentPosition();
+        while((Math.abs(currentEncoderPosition-initEncoderPosition) <ticks || Math.abs(currentEncoderPosition-initEncoderPosition) > 20000) && System.currentTimeMillis() - startTime < 29000){
+            computeHeading();
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            if (heading - startHeading > 2 && power > 0 || heading-startHeading < -2 && power < 0) {
+                left.setPower(0.2 * (power > 0 ? 1 : -1));
+                right.setPower(power);
+            }else if(heading-startHeading < -2 && power > 0 || heading-startHeading > 2 && power < 0){
+                right.setPower(0.2 * (power > 0 ? 1 : -1));
+                left.setPower(power);
+            }else{
+                right.setPower(power);
+                left.setPower(power);
+            }
+            currentEncoderPosition=encoderLeft.getCurrentPosition();
+//            telemetry.addData("Current Encoder", currentEncoderPosition);
+//            telemetry.addData("InitEncoder", initEncoderPosition);
+//            telemetry.addData("Difference in Encoders", Math.abs(currentEncoderPosition - initEncoderPosition));
+        }
+        right.setPower(0);
+        left.setPower(0);
+    }
+
+    public void moveForwardWithLightSensor(int ticks, double power) {
+        right.setPower(power);
+        left.setPower(power);
+        double startHeading=heading;
+        int initEncoderPosition=encoderLeft.getCurrentPosition();
+        int currentEncoderPosition=encoderLeft.getCurrentPosition();
+        int c = 0;
+        while (((Math.abs(currentEncoderPosition - initEncoderPosition) < ticks || Math.abs(currentEncoderPosition - initEncoderPosition) > 20000) && c < grey + COLOR_THRESHOLD)  && System.currentTimeMillis() - startTime < 29000){
+            computeHeading();
+            if (heading - startHeading > 2 && power > 0 || heading-startHeading < -2 && power < 0) {
+                left.setPower(0.2 * (power > 0 ? 1 : -1));
+                right.setPower(power);
+            }else if(heading-startHeading < -2 && power > 0 || heading-startHeading > 2 && power < 0){
+                right.setPower(0.2 * (power > 0 ? 1 : -1));
+                left.setPower(power);
+            }else{
+                right.setPower(power);
+                left.setPower(power);
+            }
+            currentEncoderPosition=encoderLeft.getCurrentPosition();
+//            telemetry.addData("Current Encoder", currentEncoderPosition);
+//            telemetry.addData("InitEncoder", initEncoderPosition);
+//            telemetry.addData("Difference in Encoders", Math.abs(currentEncoderPosition - initEncoderPosition));
+        }
+        right.setPower(0);
+        left.setPower(0);
+    }
+
+    public void moveForwardInches(double inches, double power){
+        moveForward((int) (inches * TICKS_PER_INCH), power);
+    }
+
+    public void turnTo(double angle, double power) {
+        boolean leftTurn;
+        if (Math.abs(heading - angle) < 180) {
+            if (heading > angle) leftTurn = true;
+            else leftTurn = false;
+        } else {
+            if (heading < angle) leftTurn = true;
+            else leftTurn = false;
+        }
+
+        if (leftTurn) {
+            left.setPower(-(Math.min(1, power*LEFT_POWER)));
+            right.setPower(Math.min(1, power*RIGHT_POWER));
+        } else {
+            left.setPower(Math.min(1,power * LEFT_POWER));
+            right.setPower(-(Math.min(1,power * RIGHT_POWER)));
+        }
+        while ((heading > (angle + .825) || heading < (angle - .825)) && System.currentTimeMillis() - startTime < 29000) {
+            rightBlock.setPosition(1);
+            leftBlock.setPosition(0);
+            if (Math.abs(heading - angle) < 180) {
+                if (heading > angle) leftTurn = true;
+                else leftTurn = false;
+            } else {
+                if (heading < angle) leftTurn = true;
+                else leftTurn = false;
+            }
+
+            if (leftTurn) {
+                left.setPower(-(Math.min(1, power*LEFT_POWER)));
+                right.setPower(power);
+            } else {
+                left.setPower(Math.min(1,power * LEFT_POWER));
+                right.setPower(-(Math.min(1, power * RIGHT_POWER)));
+            }
+            computeHeading();
+        }
+
+        right.setPower(0);
+        left.setPower(0);
+    }
+
+    public void turn(double angle, double power) {
+        angle += heading;
+        if (angle > 180) angle -= 360;
+        if (angle < -180) angle += 360;
+        turnTo(angle, power);
+    }
+
+    public void computeHeading() {
+        long currentTime = System.currentTimeMillis();
+        long dt = currentTime - lastTime;
+        lastTime = currentTime;
+        double angularVelocity = gyroSensor.getRotation();
+        if(Math.abs(angularVelocity-gyroOffset)>2 && dt<250) {
+            heading += (angularVelocity - gyroOffset) * (dt * .001);
+            if (heading > 180) heading -= 360;
+            if (heading < -180) heading += 360;
+        }
+//        telemetry.addData("heading", heading);
+//        telemetry.addData("deltaTime", dt);
+//        telemetry.addData("angularVelocity", angularVelocity);
+//        telemetry.addData("gyroOffset", gyroOffset);
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int getBlueCenter() {
+        double xAvg = 0, yAvg = 0;
+        double numBlue = 0;
+        for (int x = 0; x < width; x += 2) {
+            for (int y = 0; y < height; y += 2) {
+                int red = red(image.getPixel(x, y));
+                int blue = blue(image.getPixel(x, y));
+                int green = green(image.getPixel(x, y));
+
+                int redness = Math.max(0, blue - Math.max(red, green));
+                int bright = (int) (0.299 * red + 0.587 * green + 0.114 * blue);
+
+                if (redness > THRESHOLD) {
+                    xAvg += x * bright;
+                    yAvg += y * bright;
+                    numBlue += bright;
+                }
+            }
+        }
+        xAvg /= numBlue;
+        yAvg /= numBlue;
+        return (int) yAvg;
+    }
+
+    private int getRedCenter() {
+        double xAvg = 0, yAvg = 0;
+        double numRed = 0;
+        for (int x = 0; x < width; x += 2) {
+            for (int y = 0; y < height; y += 2) {
+                int red = red(image.getPixel(x, y));
+                int blue = blue(image.getPixel(x, y));
+                int green = green(image.getPixel(x, y));
+
+                int redness = Math.max(0, red - Math.max(blue, green));
+                int bright = (int) (0.299 * red + 0.587 * green + 0.114 * blue);
+
+                if (redness >   RED_THRESHOLD) {
+                    xAvg += x * bright;
+                    yAvg += y * bright;
+                    numRed += bright;
+                }
+            }
+        }
+        xAvg /= numRed;
+        yAvg /= numRed;
+        return (int) yAvg;
+    }
+
+    private double averageUSReadings(){
+        double satanStealerOfSouls=0;
+        int numReadings=0;
+        for(int i=0;i<5;i++){
+            double val=bob.getUltrasonicLevel();
+            if(val!=0) {
+                satanStealerOfSouls += bob.getUltrasonicLevel();
+                numReadings++;
+            }
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return satanStealerOfSouls/numReadings;
+    }
+}
