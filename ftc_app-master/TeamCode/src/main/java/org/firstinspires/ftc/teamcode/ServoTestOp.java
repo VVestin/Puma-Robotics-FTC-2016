@@ -11,9 +11,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous(name="ServoTest")
 public class ServoTestOp extends LinearOpMode {
+    private Servo s = hardwareMap.servo.get("servo");
 
     public void runOpMode() {
-        Servo s = hardwareMap.servo.get("servo");
         while (true) {
             telemetry.addData("pos", s.getPosition());
             telemetry.addData("dir", s.getDirection());
