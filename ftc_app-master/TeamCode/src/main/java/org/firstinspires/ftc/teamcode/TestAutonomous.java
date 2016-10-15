@@ -1,19 +1,28 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
 /**
  * Created by ftcuser1 on 10/1/16.
  */
 
+@Autonomous(name="AutonomousTest")
 public class TestAutonomous extends AutoDriveOp {
 
     public void runOpMode() throws InterruptedException {
         initHardware();
         waitForStart();
 
-        moveTicks(7200); // 5 rotations of the motor
-        rotate(45);
+        moveInches(142);
+        //moveInches(-12);
+        //rotate(180);
+
+        /*rotate(45);
         rotateTo(-90);
-        moveTicks(-1440); // 1 rotation of the motor
+        moveTicks(-1440);
+        rotate(135);
+        moveInches(6);
+        rotate(180);*/
     }
 
 }

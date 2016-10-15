@@ -18,9 +18,6 @@ public abstract class AutoDriveOp extends LinearOpMode {
     protected DcMotor left, right;
     protected GyroSensor gyro;
 
-
-    public abstract void runOpMode() throws InterruptedException;
-
     protected void initHardware() {
         left = hardwareMap.dcMotor.get("left");
         right = hardwareMap.dcMotor.get("right");
@@ -46,11 +43,34 @@ public abstract class AutoDriveOp extends LinearOpMode {
 
     // moves a set number of encoder ticks
     protected void moveTicks(int ticks) {
-        left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        right.setTargetPosition(right.getCurrentPosition() + ticks);
-        left.setTargetPosition(left.getCurrentPosition() + ticks);
-        while (right.isBusy() || left.isBusy());
+        telemetry.addData("Moving ticks", ticks);
+        telemetry.update();
+        resetEncoders();
+        double power = 0.8;
+        right.setPower(power);
+        left.setPower(power);
+
+        while (right.getCurrentPosition() < ticks || left.getCurrentPosition() < ticks) {
+            int leftPos = left.getCurrentPosition();
+            int rightPos = right.getCurrentPosition();
+            if (leftPos > rightPos) {
+                left.setPower(power * (1 - Math.max(2000, leftPos - rightPos) / 2000d));
+                right.setPower(power);
+            } else if (rightPos > leftPos) {
+                right.setPower(power * (1 - Math.max(2000, rightPos - leftPos) / 2000d));
+                left.setPower(power);
+            }
+            telemetry.addData("right", rightPos);
+            telemetry.addData("left", leftPos);
+            telemetry.addData("rightPow", right.getPower());
+            telemetry.addData("leftPow", left.getPower());
+            telemetry.update();
+        }
+        telemetry.addData("movedRight", right.getCurrentPosition());
+        telemetry.addData("movedLeft", left.getCurrentPosition());
+        telemetry.update();
+        right.setPower(0);
+        left.setPower(0);
     }
 
     protected void moveInches(double inches) {
@@ -64,12 +84,36 @@ public abstract class AutoDriveOp extends LinearOpMode {
         return -angle;
     }
 
+    // Rotate to an absolute angle (0 degrees is start)
     protected void rotateTo(int angle) {
-
+        int currentHeading=getDirection();
+        while(currentHeading != angle){
+            if(Math.abs(currentHeading-angle)==180 || Math.abs(currentHeading-angle)>180){
+                left.setPower(.7);
+                right.setPower(-.7);
+            }else if(Math.abs(currentHeading-angle)<180){
+                left.setPower(-.7);
+                right.setPower(.7);
+            }
+            currentHeading=getDirection();
+        }
     }
 
+    // Rotate relative to current position (- is left, + is right)
     protected void rotate(int angle) {
-
+        int initHeading=getDirection();
+        int currentHeading=getDirection();
+        while(currentHeading != angle){
+            int relHeading=currentHeading-initHeading;
+            if(Math.abs(relHeading-angle)==180 || Math.abs(relHeading-angle)>180){
+                left.setPower(.7);
+                right.setPower(-.7);
+            }else if(Math.abs(relHeading-angle)<180){
+                left.setPower(-.7);
+                right.setPower(.7);
+            }
+            currentHeading=getDirection();
+        }
     }
 
 }
