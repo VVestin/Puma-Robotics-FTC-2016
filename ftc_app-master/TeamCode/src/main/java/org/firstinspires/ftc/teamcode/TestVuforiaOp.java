@@ -33,8 +33,7 @@ public class TestVuforiaOp extends LinearOpMode
 
     public static final String VUFORIA_KEY = "AV4ONxv/////AAAAGefaDmLKjkgWifNHOt4h8QgFb23EhhiUz7Po/rcnXDMuJHa2Okvh/NLUSza5phLaIuyvWUINyu/cyKpmChyUCJ/A05QHnq04DK6FE36G2ihZTKbHfaJc/sz3LBIGnNa0Hwv+NZCYxNKsnm5IDBDx//c6btS/v1+6ESNE2YdieabitaPyH0RDBppIRcX2ufK6Fk71GydEz2pXkfnG8QN1zJRJn+PHf1Gg70SLF/aXHhGBVyudSlMk+EE89Or5ZyJLCSmUbS0LAHoBiVoSUtFb25iMSd/Zf3DsBPr/hZGKTfd7/c6BqeSKOidNPnOryVYThQM3hec5sbToDLneUqyhXRlAiifCw7x0he3XfFJp+NH0"; // Insert your own key here
 
-    public void runOpMode() throws InterruptedException
-    {
+    public void runOpMode() throws InterruptedException{
         setupVuforia();
 
         // We don't know where the robot is, so set it to the origin
@@ -46,8 +45,7 @@ public class TestVuforiaOp extends LinearOpMode
         // Start tracking the targets
         visionTargets.activate();
 
-        while(opModeIsActive())
-        {
+        while(opModeIsActive()){
             // Ask the listener for the latest information on where the robot is
             OpenGLMatrix latestLocation = listener.getUpdatedRobotLocation();
 
@@ -65,8 +63,7 @@ public class TestVuforiaOp extends LinearOpMode
         }
     }
 
-    public void setupVuforia()
-    {
+    public void setupVuforia(){
         // Setup parameters to create localizer
         parameters = new VuforiaLocalizer.Parameters(R.id.cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
@@ -92,16 +89,14 @@ public class TestVuforiaOp extends LinearOpMode
 
     // Creates a matrix for determining the locations and orientations of objects
     // Units are millimeters for x, y, and z, and degrees for u, v, and w
-    public OpenGLMatrix createMatrix(float x, float y, float z, float u, float v, float w)
-    {
+    public OpenGLMatrix createMatrix(float x, float y, float z, float u, float v, float w){
         return OpenGLMatrix.translation(x, y, z).
                 multiplied(Orientation.getRotationMatrix(
                         AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES, u, v, w));
     }
 
     // Formats a matrix into a readable string
-    public String formatMatrix(OpenGLMatrix matrix)
-    {
+    public String formatMatrix(OpenGLMatrix matrix){
         return matrix.formatAsTransform();
     }
 }

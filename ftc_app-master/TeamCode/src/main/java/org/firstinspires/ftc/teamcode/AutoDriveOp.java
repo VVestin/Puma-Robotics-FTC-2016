@@ -43,6 +43,8 @@ public abstract class AutoDriveOp extends LinearOpMode {
 
     // moves a set number of encoder ticks
     protected void moveTicks(int ticks) {
+        telemetry.addData("Moving ticks", ticks);
+        telemetry.update();
         resetEncoders();
         double power = 0.8;
         right.setPower(power);
@@ -52,12 +54,21 @@ public abstract class AutoDriveOp extends LinearOpMode {
             int leftPos = left.getCurrentPosition();
             int rightPos = right.getCurrentPosition();
             if (leftPos > rightPos) {
-                left.setPower(power * Math.max(1000, leftPos - rightPos) / 1000d);
-            } else if (rightPos < leftPos) {
-                right.setPower(power * Math.max(1000, rightPos - leftPos) / 1000d);
+                left.setPower(power * (1 - Math.max(2000, leftPos - rightPos) / 2000d));
+                right.setPower(power);
+            } else if (rightPos > leftPos) {
+                right.setPower(power * (1 - Math.max(2000, rightPos - leftPos) / 2000d));
+                left.setPower(power);
             }
+            telemetry.addData("right", rightPos);
+            telemetry.addData("left", leftPos);
+            telemetry.addData("rightPow", right.getPower());
+            telemetry.addData("leftPow", left.getPower());
+            telemetry.update();
         }
-
+        telemetry.addData("movedRight", right.getCurrentPosition());
+        telemetry.addData("movedLeft", left.getCurrentPosition());
+        telemetry.update();
         right.setPower(0);
         left.setPower(0);
     }
