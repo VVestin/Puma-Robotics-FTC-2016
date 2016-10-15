@@ -13,9 +13,8 @@ public class TestAutonomous extends AutoDriveOp {
         initHardware();
         waitForStart();
 
-        moveInches(142);
-        //moveInches(-12);
-        //rotate(180);
+//        moveInches(142);
+        rotate(180);
 
         /*rotate(45);
         rotateTo(-90);
