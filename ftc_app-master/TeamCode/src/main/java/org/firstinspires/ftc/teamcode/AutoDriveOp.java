@@ -54,10 +54,10 @@ public abstract class AutoDriveOp extends LinearOpMode {
             int leftPos = left.getCurrentPosition();
             int rightPos = right.getCurrentPosition();
             if (leftPos > rightPos) {
-                left.setPower(power * (1 - Math.max(2000, leftPos - rightPos) / 2000d));
+                left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d));
                 right.setPower(power);
             } else if (rightPos > leftPos) {
-                right.setPower(power * (1 - Math.max(2000, rightPos - leftPos) / 2000d));
+                right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d));
                 left.setPower(power);
             }
             telemetry.addData("right", rightPos);
@@ -105,14 +105,16 @@ public abstract class AutoDriveOp extends LinearOpMode {
         int currentHeading=getDirection();
         while(currentHeading != angle){
             int relHeading=currentHeading-initHeading;
-            if(Math.abs(relHeading-angle)==180 || Math.abs(relHeading-angle)>180){
-                left.setPower(.7);
-                right.setPower(-.7);
-            }else if(Math.abs(relHeading-angle)<180){
-                left.setPower(-.7);
-                right.setPower(.7);
+            if(Math.abs(relHeading-angle)==180 || Math.abs(relHeading-angle)<180){
+                left.setPower(.3);
+                right.setPower(-.3);
+            }else if(Math.abs(relHeading-angle)>180){
+                left.setPower(-.3);
+                right.setPower(.3);
             }
             currentHeading=getDirection();
+            telemetry.addData("angle",currentHeading);
+            telemetry.update();
         }
     }
 

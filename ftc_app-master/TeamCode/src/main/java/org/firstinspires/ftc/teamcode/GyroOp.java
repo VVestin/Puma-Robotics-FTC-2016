@@ -25,8 +25,8 @@ public class GyroOp extends OpMode {
 
     public void loop() {
         telemetry.addData("gyro: ", gyro.getHeading());
-        left.setPower(-gamepad1.left_stick_y);
-        right.setPower(-gamepad1.right_stick_y);
+        left.setPower(.4);
+        right.setPower(-.4);
     }
 
 }
