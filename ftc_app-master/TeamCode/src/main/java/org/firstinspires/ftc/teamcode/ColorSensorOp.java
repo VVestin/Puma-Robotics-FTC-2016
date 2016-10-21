@@ -19,96 +19,35 @@ import java.util.ArrayList;
 
 @Autonomous(name="ColorSensor", group="SensorTest")
 
-public class ColorSensorOp extends LinearOpMode {
+public class ColorSensorOp extends OpMode {
 
     private ColorSensor cs;
-    private CRServo crservo;
-    public void runOpMode() throws InterruptedException {
-        int button = 0;
+    private CRServo s;
+
+    //start in passive - identify color (start with finding blue)
+    //once color, move to active and find button (take averages or contrast?)
+
+    public void init() {
         cs = hardwareMap.colorSensor.get("color");
-        crservo = hardwareMap.crservo.get("servo");
-        waitForStart();
-        ArrayList<LightReading> lightValues = new ArrayList<LightReading>();
-        long start = System.currentTimeMillis();
-        Color c = new Color();
-        c.red(cs.red());
-        c.green(cs.green());
-        c.blue(cs.blue());
-        int t = (int)(System.currentTimeMillis() - start);
-        lightValues.add(new LightReading(t, avg(c), c));
-        //for loop until sense black, until not black, until zero
-        //assumption that black is always 0, 0, 0
-        crservo.setPower(0.4);
-
-        //scanning
-        while(!isBlack()){
-            crservo.setPower(0.4);
-        }
-        while(isBlack()){
-            crservo.setPower(0.4);
-        }
-        while(!isBlack()){
-            crservo.setPower(0.4);
-        }
-        while(isBlack()){
-            crservo.setPower(-0.4);
-        }
-
-        //getting array values - identifying buttons
-        int count = 0; int t1 = 0; int t2 = 0;
-        while(count < 3){
-            t = (int)(System.currentTimeMillis() - start);
-            LightReading a = new LightReading (t, avg(c), c);
-            lightValues.add(a);
-            telemetry.addData("red", c.red(cs.red()));
-            telemetry.addData("green", c.green(cs.green()));
-            telemetry.addData("blue", c.blue(cs.blue()));
-            telemetry.update();
-            if (isBlack(a.colorValue) && !isBlack(lightValues.get((lightValues.size() - 1)).colorValue)){
-                if (count == 1){
-                    t1 = t; count++;
-                }
-                else if (count == 2){
-                    t2 = t; count++;
-                }
-            }
-            telemetry.addData("Button 1", t1);
-            telemetry.addData("Button 2", t2);
-        }
+        s = hardwareMap.crservo.get("servo");
 
     }
-    public double avg(Color a){
-        return ((a.red(cs.red()) + a.green(cs.green()) + a.blue(cs.blue())) / 3.);
-    }
-
-    public boolean isBlack(){
-        Color c = new Color();
-        c.red(cs.red());
-        c.green(cs.green());
-        c.blue(cs.blue());
-        return isBlack(c);
-    }
-
-    public boolean isBlack(Color c) {
-        if(avg(c) == 0){
-            return true;
+    public void loop() {
+        if (gamepad1.dpad_up) {
+            s.setPower(.2);
+        } else if (gamepad1.dpad_down) {
+            s.setPower(-.2);
         } else {
-            return false;
+            s.setPower(0);
         }
-    }
-
-    private class LightReading{
-        //time = ms thing, light value = avg brightness, color Value = c, diff (i) LV - (i-1) LV
-        private int time; private double lightValue; private Color colorValue;
-        //constructor
-        public LightReading(int time, double lightValue, Color colorValue){
-            //instance variables
-            this.time = time; this.lightValue = lightValue; this.colorValue = colorValue;
+        if (gamepad1.a){
+            cs.enableLed(true);
+        } else if (gamepad1.b){
+            cs.enableLed(false);
         }
-
+        telemetry.addData("red", cs.red());
+        telemetry.addData("green", cs.green());
+        telemetry.addData("blue", cs.blue());
+        telemetry.update();
     }
-
-    //sys print is now telemetry.add data or telemetry.logdata
-    //collections.sort
-
 }

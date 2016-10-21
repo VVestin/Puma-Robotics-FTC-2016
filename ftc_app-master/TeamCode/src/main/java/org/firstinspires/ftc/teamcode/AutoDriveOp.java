@@ -9,6 +9,11 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
  * Created by ftcuser1 on 10/1/16.
  * All angles in degrees.
  * All distances in inches.
+ *
+ * Motor 1 of the motor controller is left
+ * Motor 2 of the motor controller is right
+ * Left forward, right backwards = gyro +
+ * Left backwards, right forwards = gyro -
  */
 
 public abstract class AutoDriveOp extends LinearOpMode {
@@ -30,7 +35,6 @@ public abstract class AutoDriveOp extends LinearOpMode {
         resetEncoders();
 
         gyro.calibrate();
-        while (gyro.isCalibrating());
     }
 
     protected void resetEncoders() {
@@ -84,38 +88,39 @@ public abstract class AutoDriveOp extends LinearOpMode {
         return -angle;
     }
 
-    // Rotate to an absolute angle (0 degrees is start)
-    protected void rotateTo(int angle) {
-        int currentHeading=getDirection();
-        while(currentHeading != angle){
-            if(Math.abs(currentHeading-angle)==180 || Math.abs(currentHeading-angle)>180){
-                left.setPower(.7);
-                right.setPower(-.7);
-            }else if(Math.abs(currentHeading-angle)<180){
-                left.setPower(-.7);
-                right.setPower(.7);
-            }
-            currentHeading=getDirection();
-        }
-    }
-
     // Rotate relative to current position (- is left, + is right)
+    // We want to try doing this with encoders
     protected void rotate(int angle) {
-        int initHeading=getDirection();
-        int currentHeading=getDirection();
-        while(currentHeading != angle){
-            int relHeading=currentHeading-initHeading;
-            if(Math.abs(relHeading-angle)==180 || Math.abs(relHeading-angle)<180){
-                left.setPower(.3);
-                right.setPower(-.3);
-            }else if(Math.abs(relHeading-angle)>180){
-                left.setPower(-.3);
-                right.setPower(.3);
-            }
-            currentHeading=getDirection();
-            telemetry.addData("angle",currentHeading);
-            telemetry.update();
+        double power = 0.75;
+        gyro.resetZAxisIntegrator();
+        resetEncoders();
+        double leftDir, rightDir;
+        if (angle > 0) {
+            leftDir = 1;
+            rightDir = -1;
+        } else {
+            rightDir = 1;
+            leftDir = -1;
         }
+        left.setPower(power * leftDir);
+        right.setPower(power * rightDir);
+        while (Math.abs(gyro.getHeading() - angle) > 1) {
+            int leftPos = Math.abs(left.getCurrentPosition());
+            int rightPos = Math.abs(right.getCurrentPosition());
+            if (leftPos > rightPos) {
+                left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d) * leftDir);
+                right.setPower(power * rightDir);
+            } else if (rightPos > leftPos) {
+                right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
+                left.setPower(power * leftDir);
+            }
+            if (Math.abs(gyro.getHeading() - angle) < 45)
+                power = 0.5;
+            if (Math.abs(gyro.getHeading() - angle) < 15)
+                power = 0.3;
+        }
+        left.setPower(0);
+        right.setPower(0);
     }
 
 }
