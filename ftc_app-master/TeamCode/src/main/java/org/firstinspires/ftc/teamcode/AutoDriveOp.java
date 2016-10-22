@@ -91,35 +91,41 @@ public abstract class AutoDriveOp extends LinearOpMode {
     // Rotate relative to current position (- is left, + is right)
     // We want to try doing this with encoders
     protected void rotate(int angle) {
-        gyro.resetZAxisIntegrator();
-        final double maxPower = 0.75;
-        final double minPower = 0.3;
-        double power = maxPower;
-        resetEncoders();
-        double leftDir, rightDir;
-        if (angle > 0) {
-            leftDir = 1;
-            rightDir = -1;
-        } else {
-            rightDir = 1;
-            leftDir = -1;
-        }
-        left.setPower(power * leftDir);
-        right.setPower(power * rightDir);
-        while (Math.abs(gyro.getHeading() - angle) > 1) {
-            power = maxPower * Math.min(maxPower, ((Math.min(90, Math.abs(gyro.getHeading() - angle))) / 90d) + minPower);
-            int leftPos = Math.abs(left.getCurrentPosition());
-            int rightPos = Math.abs(right.getCurrentPosition());
-            if (leftPos > rightPos) {
-                left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d) * leftDir);
-                right.setPower(power * rightDir);
-            } else if (rightPos > leftPos) {
-                right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
-                left.setPower(power * leftDir);
+            gyro.resetZAxisIntegrator();
+            final double maxPower = 0.5;
+            final double minPower = 0.2;
+            double power = maxPower;
+            resetEncoders();
+            double leftDir, rightDir;
+            if (angle > 0) {
+                leftDir = 1;
+                rightDir = -1;
+            } else {
+                rightDir = 1;
+                leftDir = -1;
             }
+            left.setPower(power * leftDir);
+            right.setPower(power * rightDir);
+            while (Math.abs(getDirection()) < Math.abs(angle)) {
+                try {
+                    sleep(35);
+                }
+                catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+                power = maxPower * Math.min(maxPower, ((Math.min(90, Math.abs(gyro.getHeading() - angle))) / 90d) + minPower);
+                int leftPos = Math.abs(left.getCurrentPosition());
+                int rightPos = Math.abs(right.getCurrentPosition());
+                if (leftPos > rightPos) {
+                    left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d) * leftDir);
+                    right.setPower(power * rightDir);
+                } else if (rightPos > leftPos) {
+                    right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
+                    left.setPower(power * leftDir);
+                }
+            }
+            left.setPower(0);
+            right.setPower(0);
         }
-        left.setPower(0);
-        right.setPower(0);
-    }
 
 }
