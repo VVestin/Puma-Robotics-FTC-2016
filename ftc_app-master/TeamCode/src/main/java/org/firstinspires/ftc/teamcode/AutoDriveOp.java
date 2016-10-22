@@ -30,7 +30,7 @@ public abstract class AutoDriveOp extends LinearOpMode {
 
         left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        left.setDirection(DcMotorSimple.Direction.REVERSE);
+        right.setDirection(DcMotorSimple.Direction.REVERSE);
 
         resetEncoders();
 
@@ -91,8 +91,10 @@ public abstract class AutoDriveOp extends LinearOpMode {
     // Rotate relative to current position (- is left, + is right)
     // We want to try doing this with encoders
     protected void rotate(int angle) {
-        double power = 0.75;
         gyro.resetZAxisIntegrator();
+        final double maxPower = 0.75;
+        final double minPower = 0.3;
+        double power = maxPower;
         resetEncoders();
         double leftDir, rightDir;
         if (angle > 0) {
@@ -105,6 +107,7 @@ public abstract class AutoDriveOp extends LinearOpMode {
         left.setPower(power * leftDir);
         right.setPower(power * rightDir);
         while (Math.abs(gyro.getHeading() - angle) > 1) {
+            power = maxPower * Math.min(maxPower, ((Math.min(90, Math.abs(gyro.getHeading() - angle))) / 90d) + minPower);
             int leftPos = Math.abs(left.getCurrentPosition());
             int rightPos = Math.abs(right.getCurrentPosition());
             if (leftPos > rightPos) {
@@ -114,10 +117,6 @@ public abstract class AutoDriveOp extends LinearOpMode {
                 right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
                 left.setPower(power * leftDir);
             }
-            if (Math.abs(gyro.getHeading() - angle) < 45)
-                power = 0.5;
-            if (Math.abs(gyro.getHeading() - angle) < 15)
-                power = 0.3;
         }
         left.setPower(0);
         right.setPower(0);
