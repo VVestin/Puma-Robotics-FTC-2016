@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.hardware.LightSensor;
 
 /**
  * Created by ftcuser1 on 10/1/16.
@@ -90,7 +92,9 @@ public abstract class AutoDriveOp extends LinearOpMode {
 
     // Rotate relative to current position (- is left, + is right)
     // We want to try doing this with encoders
+    // ffs comment your damn code weston
     protected void rotate(int angle) {
+            int initHeading=getDirection();
             gyro.resetZAxisIntegrator();
             final double maxPower = 0.5;
             final double minPower = 0.2;
@@ -106,7 +110,7 @@ public abstract class AutoDriveOp extends LinearOpMode {
             }
             left.setPower(power * leftDir);
             right.setPower(power * rightDir);
-            while (Math.abs(getDirection()) < Math.abs(angle)) {
+            while (Math.abs(getDirection()-initHeading) < Math.abs(angle)) {
                 try {
                     sleep(35);
                 }
@@ -117,15 +121,27 @@ public abstract class AutoDriveOp extends LinearOpMode {
                 int leftPos = Math.abs(left.getCurrentPosition());
                 int rightPos = Math.abs(right.getCurrentPosition());
                 if (leftPos > rightPos) {
-                    left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d) * leftDir);
+//                    left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d) * leftDir);
+                    left.setPower(power*leftDir);
                     right.setPower(power * rightDir);
                 } else if (rightPos > leftPos) {
-                    right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
+//                    right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
+                    right.setPower(power * rightDir);
                     left.setPower(power * leftDir);
                 }
+                telemetry.addData("angle", Math.abs(getDirection()-initHeading));
+                telemetry.addData("power", power);
+                telemetry.update();
             }
             left.setPower(0);
             right.setPower(0);
+
         }
+
+    protected void turn(int angle){
+        int initHeading=getDirection();
+        int heading=getDirection();
+
+    }
 
 }
