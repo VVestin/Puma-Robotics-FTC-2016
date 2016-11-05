@@ -1,96 +1,111 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.LightSensor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 /**
  * Created by ftcuser2 on 10/29/16.
  */
-
+@Autonomous(name="Autonomous")
 public class AutonomousOp extends AutoDriveOp {
 
-    private LightSensor front;
-    private ColorSensor center, cs;
+    private OpticalDistanceSensor ods;
+    private ColorSensor cs;
+    private ColorSensor front;
     private CRServo crservo;
     private boolean redTeam;
 
     public void runOpMode() throws InterruptedException {
-        front=hardwareMap.lightSensor.get("front");
-        center=hardwareMap.colorSensor.get("center");
+        ods=hardwareMap.opticalDistanceSensor.get("ods");
         cs=hardwareMap.colorSensor.get("color");
+        front = hardwareMap.colorSensor.get("front");
         crservo=hardwareMap.crservo.get("servo");
         redTeam=true;
         initHardware();
         waitForStart();
-        front.enableLed(true);
-        center.enableLed(true);
-        int initColor=center.red();
-        double initLightVal=front.getRawLightDetected();
+        ods.enableLed(true);
+        double initLightVal = ods.getLightDetected();
+        double initColorVal = avg(front);
+        double power=.25;
 
-        moveInches(95); //move to roughly the white line
+        moveInches(35); //move to roughly the white line
 
         //move so center is over white line
-        while(center.red()-initColor<50){
+        while(ods.getLightDetected()-initLightVal<.07){
             int leftPos = left.getCurrentPosition();
             int rightPos = right.getCurrentPosition();
             if (leftPos > rightPos) {
-                left.setPower(.8 * (1 - Math.min(100, leftPos - rightPos) / 100d));
-                right.setPower(.8);
+                left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d));
+                right.setPower(power);
             } else if (rightPos > leftPos) {
-                right.setPower(.8 * (1 - Math.min(100, rightPos - leftPos) / 100d));
-                left.setPower(.8);
+                right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d));
+                left.setPower(power);
+            }
+            if(avg(front)>10){
+                power=.2;
+                telemetry.addData("slowing down", true);
+                telemetry.update();
             }
         }
+
+
         left.setPower(0);
         right.setPower(0);
-        Thread.sleep(100);
+        Thread.sleep(200);
 
         //align robot along the white line
-//        while(front.getRawLightDetected()-initLightVal<50){
-//            right.setPower(.25);
-//            left.setPower(-.25);
-//        }
-//
-//        left.setPower(0);
-//        right.setPower(0);
-//        Thread.sleep(100);
+        if (redTeam) {
+            right.setPower(.1);
+            left.setPower(-.1);
+        } else {
+            right.setPower(-.1);
+            left.setPower(.1);
+        }
+        while(avg(front) < 10) {}
 
-        //move towards beacon after alignment to allow scanning of beacon
-//        moveInches(5);
+        left.setPower(0);
+        right.setPower(0);
 
-//        cs.enableLed(true);
-//        sleep(500);
-//        left.setPower(0.1); right.setPower(0.1);
-//        //rotate(-90 - getDirection());
-//
-//        //drive forward until colors
-//        while(avg() < 1) {
-//            sleep(30);
-//            telemetry.addData("Color", avg());
-//            telemetry.update();
-//        }
-//
-//        //stop before the wall
-//        sleep(100);
-//        left.setPower(0); right.setPower(0);
-//
-//        //scan
-//        scanBeacon();
-//
-//        //pressing the button
-//        right.setPower(0.1); left.setPower(0.1);
-//        sleep(1000);
-//        right.setPower(-0.1); left.setPower(-0.1);
-//        sleep(3000);
-//        right.setPower(0); left.setPower(0);
+        cs.enableLed(true);
+        sleep(500);
+        left.setPower(0.1);
+        right.setPower(0.1);
+
+        //drive forward until colors
+        while(avg(cs) < 1) {
+            sleep(30);
+            telemetry.addData("Color", avg(cs));
+            telemetry.update();
+        }
+
+        //stop before the wall
+        sleep(100);
+        left.setPower(0); right.setPower(0);
+
+        //scan
+        scanBeacon();
+
+        //pressing the button
+        right.setPower(0.1); left.setPower(0.1);
+        sleep(1000);
+        right.setPower(-0.1); left.setPower(-0.1);
+        sleep(3000);
+        right.setPower(0); left.setPower(0);
 
 
     }
 
     public double avg() {
-        return (cs.red() + cs.green() + cs.blue()) / 3.0;
+        return avg(cs);
     }
+
+    public double avg(ColorSensor c) {
+        return (c.red() + c.green() + c.blue()) / 3.0;
+    }
+
 
     public void scanBeacon(){
         try {
