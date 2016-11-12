@@ -13,11 +13,17 @@ public class TestAutonomous extends AutoDriveOp {
         initHardware();
         waitForStart();
 
-//        moveInches(142);
         rotate(90);
+        Thread.sleep(1000);
+        rotate(90);
+        Thread.sleep(1000);
+        rotate(90);
+        Thread.sleep(1000);
+        rotate(90);
+        Thread.sleep(1000);
+        //rotate(90);
 
-        /*rotate(45);
-        rotateTo(-90);
+       /* rotateTo(-90);
         moveTicks(-1440);
         rotate(135);
         moveInches(6);

@@ -30,6 +30,8 @@ public abstract class AutoDriveOp extends LinearOpMode {
         right = hardwareMap.dcMotor.get("right");
         gyro = hardwareMap.gyroSensor.get("gyro");
 
+        left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         right.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -49,32 +51,18 @@ public abstract class AutoDriveOp extends LinearOpMode {
 
     // moves a set number of encoder ticks
     protected void moveTicks(int ticks) {
-        telemetry.addData("Moving ticks", ticks);
-        telemetry.update();
+//        telemetry.addData("Moving ticks", ticks);
+//        telemetry.update();
         resetEncoders();
-        double power = 0.8;
-        right.setPower(power);
-        left.setPower(power);
+        double maxPower = 0.5; double minPower = 0.2;
+        right.setPower(maxPower);
+        left.setPower(maxPower);
 
-        while (right.getCurrentPosition() < ticks || left.getCurrentPosition() < ticks) {
-            int leftPos = left.getCurrentPosition();
-            int rightPos = right.getCurrentPosition();
-            if (leftPos > rightPos) {
-                left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d));
-                right.setPower(power);
-            } else if (rightPos > leftPos) {
-                right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d));
-                left.setPower(power);
-            }
-            telemetry.addData("right", rightPos);
-            telemetry.addData("left", leftPos);
-            telemetry.addData("rightPow", right.getPower());
-            telemetry.addData("leftPow", left.getPower());
-            telemetry.update();
+        while (right.getCurrentPosition() < ticks || left.getCurrentPosition() < ticks){
+            double power = minPower+(maxPower - minPower)*(((double)ticks - left.getCurrentPosition())/(double)ticks);
+            right.setPower(power); left.setPower(power);
         }
-        telemetry.addData("movedRight", right.getCurrentPosition());
-        telemetry.addData("movedLeft", left.getCurrentPosition());
-        telemetry.update();
+
         right.setPower(0);
         left.setPower(0);
     }
@@ -90,10 +78,32 @@ public abstract class AutoDriveOp extends LinearOpMode {
         return -angle;
     }
 
+    protected void rotate(int angle){
+        gyro.resetZAxisIntegrator();
+        int leftDir = 1;
+        int rightDir = 1;
+        if (angle > 0) {
+            rightDir = -1;
+        } else {
+            leftDir = -1;
+        }
+        double maxPower = 0.3;
+        double minPower = 0.1;
+        while(Math.abs(getDirection()) < Math.abs(angle)){
+            double power = minPower + (maxPower - minPower)*((Math.abs(angle) - Math.abs(getDirection())) / ((double) Math.abs(angle)));
+            left.setPower(power * leftDir);
+            right.setPower(power * rightDir);
+            telemetry.addData("Power", power);
+            telemetry.addData("Direction", getDirection());
+            telemetry.update();
+        }
+        left.setPower(0); right.setPower(0);
+    }
+
     // Rotate relative to current position (- is left, + is right)
     // We want to try doing this with encoders
     // ffs comment your damn code weston
-    protected void rotate(int angle) {
+    protected void rotateBad(int angle) {
             int initHeading=getDirection();
             gyro.resetZAxisIntegrator();
             final double maxPower = 0.5;
