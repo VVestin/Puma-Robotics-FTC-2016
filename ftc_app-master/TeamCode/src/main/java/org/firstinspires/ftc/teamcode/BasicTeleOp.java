@@ -35,6 +35,7 @@ public class BasicTeleOp extends OpMode implements BeaconConstants {
     private double sleepStart;
     private double initLightVal;
     private double crPower;
+    private boolean alignRight;
 
     public void init() {
         left = hardwareMap.dcMotor.get("left");
@@ -66,7 +67,12 @@ public class BasicTeleOp extends OpMode implements BeaconConstants {
                 if (gamepad1.a) {
                     stickDrive = true;
                 }
-            } if(gamepad1.dpad_up) {
+            } if(gamepad1.dpad_left) {
+                alignRight = false;
+                beacon = true;
+                state = State.START;
+            } else if(gamepad1.dpad_right){
+                alignRight = true;
                 beacon = true;
                 state = State.START;
             }
@@ -109,12 +115,12 @@ public class BasicTeleOp extends OpMode implements BeaconConstants {
                     }
                     break;
                 case ALIGN_LINE: //starts turn until on front LS on white line
-                    if (RED_TEAM) {
-                        right.setPower(ALIGN_POWER);
-                        left.setPower(-ALIGN_POWER);
-                    } else {
+                    if (alignRight) {
                         right.setPower(-ALIGN_POWER);
                         left.setPower(ALIGN_POWER);
+                    } else {
+                        right.setPower(ALIGN_POWER);
+                        left.setPower(-ALIGN_POWER);
                     }
                     state = State.ALIGN_LINE_LOOP;
                     break;

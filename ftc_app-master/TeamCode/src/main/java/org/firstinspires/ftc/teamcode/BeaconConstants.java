@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
  */
 
 public interface BeaconConstants {
+    public static final boolean RED_TEAM = false;
     public static final double LINE_FORWARD_POWER = 0.2;
     public static final double INIT_DRIVE_DISTANCE = 35;
     public static final double LINE_SLOW_POWER = 0.15;
@@ -16,7 +17,6 @@ public interface BeaconConstants {
     public static final double BEACON_FOUND_THRESHOLD = 1;
     public static final long CR_CENTER_TIME = 1126;
     public static final int SECOND_TURN_ANGLE = 80;
-    public static final boolean RED_TEAM = false;
     public static final double FIND_BEACON_POWER = 0.1;
     public static final double PUSH_BUTTON_POWER = 0.1;
     public static final double CS_BLACK_THRESHOLD = 5;
