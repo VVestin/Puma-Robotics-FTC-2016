@@ -119,13 +119,13 @@ public class AutonomousOp extends AutoDriveOp {
             }
 
             int angle = getAngleFromMatrix(lastKnownLocation);
-            int anglebuffer = 3; //tweak this
+            int anglebuffer = 2; //tweak this
 
-            while (Math.abs(angle) - 90 > anglebuffer) {
-                if (angle > 90 + anglebuffer) {
+            while (Math.abs(angle) - 90 > anglebuffer) {//needs to be tested
+                if((angle < 0 && angle > -90 + anglebuffer) || (angle > 0 && angle > 90 + anglebuffer)){
                     left.setPower(.1);
                     right.setPower(-.1);
-                } else if (angle < 90 - anglebuffer) {
+                }else if((angle < 0 && angle < -90 - anglebuffer) || (angle > 0 && angle < 90 - anglebuffer)){
                     left.setPower(-.1);
                     right.setPower(.1);
                 }
@@ -292,18 +292,14 @@ public class AutonomousOp extends AutoDriveOp {
     public OpenGLMatrix getLocation(){
         OpenGLMatrix location = createMatrix(0, 0, 0, 0, 0, 0);//just set to orign since it'll get updated no matter what at this location on the field
 
-        if (redTeam) {
-            if(gearListener.isVisible()){ //if gears picture is visible set location based on that picture
-                location = gearListener.getUpdatedRobotLocation();
-            }else if(toolListener.isVisible()){ //if tools picture is visible set location based on that picture
-                location = toolListener.getUpdatedRobotLocation();
-            }
-        } else {
-            if(wheelListener.isVisible()){ //if wheels picture is visible set location based on that picture
-                location = wheelListener.getUpdatedRobotLocation();
-            }else if(legoListener.isVisible()) { //if legos picture is visible set location based on that picture
-                location = legoListener.getUpdatedRobotLocation();
-            }
+        if(gearListener.isVisible()){ //if gears picture is visible set location based on that picture
+            location = gearListener.getUpdatedRobotLocation();
+        }else if(toolListener.isVisible()){ //if tools picture is visible set location based on that picture
+            location = toolListener.getUpdatedRobotLocation();
+        }else if(wheelListener.isVisible()){ //if wheels picture is visible set location based on that picture
+            location = wheelListener.getUpdatedRobotLocation();
+        }else if(legoListener.isVisible()) { //if legos picture is visible set location based on that picture
+            location = legoListener.getUpdatedRobotLocation();
         }
 
         return location;
@@ -312,15 +308,9 @@ public class AutonomousOp extends AutoDriveOp {
 
     public int getAngleFromMatrix(OpenGLMatrix matrix){
         String m=formatMatrix(matrix);
-        int end=m.indexOf("}");
-        int start=-1;
-        for(int i=end; i>=0; i--){
-            if(m.charAt(i) == ' '){
-                start=i;
-                break;
-            }
-        }
-        return parseInt(m.substring(start+1, end));
+        int start=m.indexOf('Z');
+        int end=m.indexOf(' ',start+2);
+        return parseInt(m.substring(start+2, end));
     }
     // Creates a matrix for determining the locations and orientations of objects
     // Units are millimeters for x, y, and z, and degrees for u, v, and w
