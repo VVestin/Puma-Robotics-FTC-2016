@@ -23,14 +23,13 @@ import static java.lang.Integer.parseInt;
  * Created by ftcuser2 on 10/29/16.
  */
 @Autonomous(name="Autonomous")
-public class AutonomousOp extends AutoDriveOp {
+public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
 
     private OpticalDistanceSensor ods;
     private ColorSensor cs;
     private ColorSensor front;
     private CRServo crservo;
-    private boolean redTeam;
-    private double crPower = 0.3;
+    private double crPower = CR_POWER;
 
     //Vuforia stuff
     private VuforiaLocalizer vuforiaLocalizer;
@@ -57,7 +56,6 @@ public class AutonomousOp extends AutoDriveOp {
         cs = hardwareMap.colorSensor.get("color");
         front = hardwareMap.colorSensor.get("front");
         crservo = hardwareMap.crservo.get("servo");
-        redTeam = false;
         initHardware();
 
         setupVuforia();
@@ -67,24 +65,26 @@ public class AutonomousOp extends AutoDriveOp {
         ods.enableLed(true);
         double initLightVal = ods.getLightDetected();
         double initColorVal = avg(front);
-        double power = .2;
 
-        moveInches(35); //move to roughly the white line
+        moveInches(INIT_DRIVE_DISTANCE); //move to roughly the white line
 
         for(int i = 0; i < 2; i++) {
+            left.setPower(LINE_FORWARD_POWER);
+            right.setPower(LINE_FORWARD_POWER);
             //move so center is over white line
-            while (ods.getLightDetected() - initLightVal < .07) {
-                int leftPos = left.getCurrentPosition();
-                int rightPos = right.getCurrentPosition();
-                if (leftPos > rightPos) {
-                    left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d));
-                    right.setPower(power);
-                } else if (rightPos > leftPos) {
-                    right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d));
-                    left.setPower(power);
-                }
-                if (avg(front) > 10) {
-                    power = .15;
+            while (ods.getLightDetected() - initLightVal < ODS_WHITE_THRESHOLD) {
+//                int leftPos = left.getCurrentPosition();
+//                int rightPos = right.getCurrentPosition();
+//                if (leftPos > rightPos) {
+//                    left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d));
+//                    right.setPower(power);
+//                } else if (rightPos > leftPos) {
+//                    right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d));
+//                    left.setPower(power);
+//                }
+                if (avg(front) > FRONT_WHITE_THRESHOLD) {
+                    left.setPower(LINE_SLOW_POWER);
+                    right.setPower(LINE_SLOW_POWER);
                     telemetry.addData("slowing down", true);
                     telemetry.update();
                 }
@@ -96,14 +96,14 @@ public class AutonomousOp extends AutoDriveOp {
             Thread.sleep(200);
 
             //align robot along the white line
-            if (redTeam) {
-                right.setPower(.1);
-                left.setPower(-.1);
+            if (RED_TEAM) {
+                right.setPower(ALIGN_POWER);
+                left.setPower(-ALIGN_POWER);
             } else {
-                right.setPower(-.1);
-                left.setPower(.1);
+                right.setPower(-ALIGN_POWER);
+                left.setPower(ALIGN_POWER);
             }
-            while (avg(front) < 10) {
+            while (avg(front) < FRONT_WHITE_THRESHOLD) {
             }
 
             left.setPower(0);
@@ -123,11 +123,11 @@ public class AutonomousOp extends AutoDriveOp {
 
             while (Math.abs(angle) - 90 > anglebuffer) {
                 if (angle > 90 + anglebuffer) {
-                    left.setPower(.1);
-                    right.setPower(-.1);
+                    left.setPower(ALIGN_POWER);
+                    right.setPower(-ALIGN_POWER);
                 } else if (angle < 90 - anglebuffer) {
-                    left.setPower(-.1);
-                    right.setPower(.1);
+                    left.setPower(-ALIGN_POWER);
+                    right.setPower(ALIGN_POWER);
                 }
 
                 latestLocation = getLocation();
@@ -147,9 +147,9 @@ public class AutonomousOp extends AutoDriveOp {
             //drive forward until colors
             cs.enableLed(true);
             sleep(500);
-            left.setPower(0.1);
-            right.setPower(0.1);
-            while (avg(cs) < 1) {
+            left.setPower(FIND_BEACON_POWER);
+            right.setPower(FIND_BEACON_POWER);
+            while (avg(cs) < BEACON_FOUND_THRESHOLD) {
                 sleep(30);
                 telemetry.addData("Color", avg(cs));
                 telemetry.update();
@@ -164,23 +164,23 @@ public class AutonomousOp extends AutoDriveOp {
             scanBeacon();
 
             //pressing the button
-            right.setPower(0.1);
-            left.setPower(0.1);
+            right.setPower(PUSH_BUTTON_POWER);
+            left.setPower(PUSH_BUTTON_POWER);
             sleep(1000);
 
             //back up!
-            right.setPower(-0.1);
-            left.setPower(-0.1);
+            right.setPower(-PUSH_BUTTON_POWER);
+            left.setPower(-PUSH_BUTTON_POWER);
             crservo.setPower(crPower);
-            sleep(1126);
+            sleep(CR_CENTER_TIME);
             crservo.setPower(0);
-            sleep(3000-1126);
+            sleep(3000-CR_CENTER_TIME);
             right.setPower(0);
             left.setPower(0);
 
             if(i == 0){
-                rotate(redTeam?80:-80);
-                moveInches(24);
+                rotate(RED_TEAM?SECOND_TURN_ANGLE:-SECOND_TURN_ANGLE);
+                moveInches(SECOND_BEACON_DISTANCE);
             }
         }
     }
@@ -197,26 +197,27 @@ public class AutonomousOp extends AutoDriveOp {
     public void scanBeacon() {
         try {
             //set passive
-            boolean wentRight = true;
+            boolean wentLeft = true;
             cs.enableLed(false);
             sleep(500);
-            double power = 0.3;
+            double power = CR_POWER;
             crservo.setPower(power);
+
             //scan until correct or incorrect color
             while (Math.abs(cs.red() - cs.blue()) <= 1 && !(cs.red() > 0 && cs.blue() == 0))
                 sleep(30);
             //turn if wrong color, else stay
-            if (cs.red() > cs.blue() != redTeam) {
+            if (cs.red() > cs.blue() != RED_TEAM) {
                 power = -power;
                 crservo.setPower(power);
                 sleep(400);
-                wentRight = false;
+                wentLeft = false;
                 // Small sleep so that it goes back into the center
                 while (Math.abs(cs.red() - cs.blue()) <= 1)
                     sleep(30); // Go until you see one color more than the other
             }
             //error in blue edge
-            if (!redTeam)
+            if (!RED_TEAM)
                 sleep(200);
             crservo.setPower(0);
             sleep(500);
@@ -226,12 +227,12 @@ public class AutonomousOp extends AutoDriveOp {
             sleep(500);
             power /= 2;
             crservo.setPower(power);
-            if (redTeam) {
-                while (avg() > 5) { sleep(35); }
+            if (RED_TEAM) {
+                while (avg() > CS_BLACK_THRESHOLD) { sleep(35); }
             } else {
-                while (avg() > 5) { sleep(35); }
+                while (avg() > CS_BLACK_THRESHOLD) { sleep(35); }
             }
-            if(wentRight) {
+            if(wentLeft) {
                 crPower = -crPower;
             }
             crservo.setPower(0);
@@ -292,7 +293,7 @@ public class AutonomousOp extends AutoDriveOp {
     public OpenGLMatrix getLocation(){
         OpenGLMatrix location = createMatrix(0, 0, 0, 0, 0, 0);//just set to orign since it'll get updated no matter what at this location on the field
 
-        if (redTeam) {
+        if (RED_TEAM) {
             if(gearListener.isVisible()){ //if gears picture is visible set location based on that picture
                 location = gearListener.getUpdatedRobotLocation();
             }else if(toolListener.isVisible()){ //if tools picture is visible set location based on that picture
