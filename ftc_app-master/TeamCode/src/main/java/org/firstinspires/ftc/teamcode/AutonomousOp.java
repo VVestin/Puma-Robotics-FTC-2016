@@ -119,7 +119,7 @@ public class AutonomousOp extends AutoDriveOp {
             }
 
             int angle = getAngleFromMatrix(lastKnownLocation);
-            int anglebuffer = 6; //tweak this
+            int anglebuffer = 3; //tweak this
 
             while (Math.abs(angle) - 90 > anglebuffer) {
                 if (angle > 90 + anglebuffer) {
@@ -179,7 +179,7 @@ public class AutonomousOp extends AutoDriveOp {
             left.setPower(0);
 
             if(i == 0){
-                rotate(redTeam?86:-86);
+                rotate(redTeam?80:-80);
                 moveInches(24);
             }
         }

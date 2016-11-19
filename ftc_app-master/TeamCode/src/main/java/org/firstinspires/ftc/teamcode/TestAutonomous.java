@@ -14,13 +14,13 @@ public class TestAutonomous extends AutoDriveOp {
         waitForStart();
 
         rotate(90);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         rotate(90);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         rotate(90);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         rotate(90);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         //rotate(90);
 
        /* rotateTo(-90);
