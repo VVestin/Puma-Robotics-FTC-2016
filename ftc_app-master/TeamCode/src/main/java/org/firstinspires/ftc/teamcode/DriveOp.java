@@ -12,6 +12,8 @@ public abstract class DriveOp extends OpMode {
     protected GyroSensor gyro;
 
 	public void init() {
+        telemetry.addData("Initializing DriveOp", true);
+
 		left = hardwareMap.dcMotor.get("left");
         right = hardwareMap.dcMotor.get("right");
         gyro = hardwareMap.gyroSensor.get("gyro");

@@ -15,14 +15,14 @@ public class TestLightSensor extends OpMode {
     private ColorSensor cs;
 
     public void init() {
-        ls = hardwareMap.lightSensor.get("light reading");
-        cs = hardwareMap.colorSensor.get("color reading");
+//        ls = hardwareMap.lightSensor.get("light reading");
+        cs = hardwareMap.colorSensor.get("front");
     }
 
     public void loop(){
-        ls.enableLed(true);
+//        ls.enableLed(true);
         cs.enableLed(true);
-        telemetry.addData("Light Sensor: ", ls.getRawLightDetected());
+//        telemetry.addData("Light Sensor: ", ls.getRawLightDetected());
         telemetry.addData("CS Red: ", cs.red());
         telemetry.addData("CS Green: ", cs.green());
         telemetry.addData("CS Blue: ", cs.blue());

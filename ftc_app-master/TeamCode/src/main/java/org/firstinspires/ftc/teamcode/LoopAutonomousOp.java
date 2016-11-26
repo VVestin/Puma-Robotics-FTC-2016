@@ -14,15 +14,15 @@ public class LoopAutonomousOp extends ButtonPusher implements BeaconConstants {
 	public void loop() {
 		switch(state) {
 			case AUTONOMOUS_START:
-				nextStates.push(State.PUSH_BEACON_BUTTON);
-				nextStates.push(State.AUTONOMOUS_SECOND_BEACON);
+				nextStates.add(State.PUSH_BEACON_START);
+				nextStates.add(State.AUTONOMOUS_SECOND_BEACON);
 				driveDist = INIT_DRIVE_DISTANCE;
 				state = State.DRIVE_DIST;
 				break;
 			case AUTONOMOUS_SECOND_BEACON:
-				nextStates.push(State.AUTONOMOUS_STOP);
+				nextStates.add(State.AUTONOMOUS_STOP);
 				// TODO add 90 degree turn and drive.
-				state = State.PUSH_BEACON_BUTTON;
+				state = State.PUSH_BEACON_START;
 				break;
 			case AUTONOMOUS_STOP:
 				// Do nothing, wait for time to run out.
