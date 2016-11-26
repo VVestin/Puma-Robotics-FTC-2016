@@ -1,55 +1,34 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
-
-import org.firstinspires.ftc.teamcode.BeaconScanner;
-
-import java.util.Stack;
-
-/**
- * Created by sarabranham on 10/22/16.
- */
-
-@Autonomous(name="ButtonPusher", group="SensorTest")
-
-public class ButtonPusher extends OpMode implements BeaconConstants{
-
-    private DcMotor left;
-    private DcMotor right;
-    private OpticalDistanceSensor ods;
+public class ButtonPusher extends DriveOp implements BeaconConstants {
+	private OpticalDistanceSensor ods;
     private ColorSensor cs;
     private ColorSensor front;
     private CRServo crservo;
-    private boolean stickDrive;
-    private boolean beacon;
-    private State state;
-    private boolean wentLeft = true;
+    protected State state;
+    protected boolean wentLeft = true;
     // Variables state machine uses to pass around parameters:
-    private Stack<State> nextStates;
-    private double driveDist;
-    private double sleepLength;
+    protected Stack<State> nextStates;
+    protected double driveDist;
+    protected double sleepLength;
     private double sleepStart;
     private double initLightVal;
     private double crPower;
     private boolean alignRight;
 
-    public void init() {
-        left = hardwareMap.dcMotor.get("left");
-        left.setDirection(DcMotor.Direction.REVERSE);
-        right = hardwareMap.dcMotor.get("right");
-        stickDrive = true;
-        beacon = false;
-    }
+	public void init() {
+		super.init();
+        ods = hardwareMap.opticalDistanceSensor.get("ods");
+        cs = hardwareMap.colorSensor.get("color");
+        front = hardwareMap.colorSensor.get("front");
+        crservo = hardwareMap.crservo.get("servo");
+	}
 
-    public void loop() {
-        switch (state) {
-            case START: //entry point state
-                driveDist = INIT_DRIVE_DISTANCE;
+	public void loop() {
+		telemetry.addData("State", state);
+		switch (state) {
+			case PUSH_BEACON_BUTTON: //entry point state
+				driveDist = INIT_DRIVE_DISTANCE;
                 state = State.FIND_LINE;
                 nextStates.push(State.ALIGN_LINE);
                 nextStates.push(State.DRIVE_TO_BEACON);
@@ -75,7 +54,7 @@ public class ButtonPusher extends OpMode implements BeaconConstants{
                 state = State.FIND_LINE_LOOP;
                 break;
             case FIND_LINE_LOOP: //stops driving once line
-                if (ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD) {
+                if (ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD){
                     left.setPower(0);
                     right.setPower(0);
                     sleepLength = 100;
@@ -114,15 +93,14 @@ public class ButtonPusher extends OpMode implements BeaconConstants{
                 state = State.DRIVE_TO_BEACON_LOOP;
                 break;
             case DRIVE_TO_BEACON_LOOP: //completes drive forward
-                if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
+                if(avg(cs) >= BEACON_FOUND_THRESHOLD){
                     sleepLength = 100;
                     nextStates.push(State.DRIVE_TO_BEACON_STOP);
                     state = State.SLEEP;
                 }
                 break;
             case DRIVE_TO_BEACON_STOP: //stops the motors after sleep
-                left.setPower(0);
-                right.setPower(0);
+                left.setPower(0); right.setPower(0);
                 state = nextStates.pop();
                 break;
             case SCAN_BEACON:
@@ -136,15 +114,15 @@ public class ButtonPusher extends OpMode implements BeaconConstants{
                 state = State.SCAN_BEACON_LOOP;
                 break;
             case SCAN_BEACON_LOOP:
-                if (!(Math.abs(cs.red() - cs.blue()) <= 1 && !(cs.red() > 0 && cs.blue() == 0))) {
-                    if (cs.red() > cs.blue() != RED_TEAM) {
+                if(!(Math.abs(cs.red() - cs.blue()) <= 1 && !(cs.red() > 0 && cs.blue() == 0))){
+                    if(cs.red() > cs.blue() != RED_TEAM){
                         wentLeft = false;
                         crservo.setPower(-CR_POWER);
                         nextStates.push(State.SCAN_BEACON_LOOP);
                         sleepLength = 400;
                         state = State.SLEEP;
                     } else {
-                        if (!RED_TEAM) {
+                        if(!RED_TEAM){
                             sleepLength = 200;
                             nextStates.push(State.SCAN_FOR_BUTTON);
                             state = State.SLEEP;
@@ -155,11 +133,11 @@ public class ButtonPusher extends OpMode implements BeaconConstants{
                 }
                 break;
             case SCAN_FOR_BUTTON:
-                crservo.setPower(wentLeft ? 1 : -1 * (CR_POWER / 2.));
+                crservo.setPower(wentLeft?1:-1*(CR_POWER/2.));
                 state = State.SCAN_FOR_BUTTON_LOOP;
                 break;
             case SCAN_FOR_BUTTON_LOOP:
-                if (avg() <= CS_BLACK_THRESHOLD) {
+                if(avg() <= CS_BLACK_THRESHOLD){
                     crservo.setPower(0);
                     state = nextStates.pop();
                 }
@@ -174,9 +152,12 @@ public class ButtonPusher extends OpMode implements BeaconConstants{
             case PUSH_BUTTON_STOP:
                 right.setPower(0);
                 left.setPower(0);
+				state = nextStates.pop();
                 break;
         }
-    }
+
+	}
+    
     public double avg() {
         return avg(cs);
     }
@@ -184,14 +165,4 @@ public class ButtonPusher extends OpMode implements BeaconConstants{
     public double avg(ColorSensor c) {
         return (c.red() + c.green() + c.blue()) / 3.0;
     }
-
-    private void resetEncoders() {
-        right.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        left.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        while (right.isBusy() || left.isBusy());
-        right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-
-
 }

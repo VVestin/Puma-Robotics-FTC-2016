@@ -12,8 +12,6 @@ import com.qualcomm.robotcore.hardware.LightSensor;
  * All angles in degrees.
  * All distances in inches.
  *
- * Motor 1 of the motor controller is left
- * Motor 2 of the motor controller is right
  * Left forward, right backwards = gyro +
  * Left backwards, right forwards = gyro -
  */
@@ -104,54 +102,52 @@ public abstract class AutoDriveOp extends LinearOpMode {
     // We want to try doing this with encoders
     // ffs comment your damn code weston
     protected void rotateBad(int angle) {
-            int initHeading=getDirection();
-            gyro.resetZAxisIntegrator();
-            final double maxPower = 0.5;
-            final double minPower = 0.2;
-            double power = maxPower;
-            resetEncoders();
-            double leftDir, rightDir;
-            if (angle > 0) {
-                leftDir = 1;
-                rightDir = -1;
-            } else {
-                rightDir = 1;
-                leftDir = -1;
-            }
-            left.setPower(power * leftDir);
-            right.setPower(power * rightDir);
-            while (Math.abs(getDirection()-initHeading) < Math.abs(angle)) {
-                try {
-                    sleep(35);
-                }
-                catch (InterruptedException e){
-                    e.printStackTrace();
-                }
-                power = maxPower * Math.min(maxPower, ((Math.min(90, Math.abs(gyro.getHeading() - angle))) / 90d) + minPower);
-                int leftPos = Math.abs(left.getCurrentPosition());
-                int rightPos = Math.abs(right.getCurrentPosition());
-                if (leftPos > rightPos) {
-//                    left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d) * leftDir);
-                    left.setPower(power*leftDir);
-                    right.setPower(power * rightDir);
-                } else if (rightPos > leftPos) {
-//                    right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
-                    right.setPower(power * rightDir);
-                    left.setPower(power * leftDir);
-                }
-                telemetry.addData("angle", Math.abs(getDirection()-initHeading));
-                telemetry.addData("power", power);
-                telemetry.update();
-            }
-            left.setPower(0);
-            right.setPower(0);
-
+        int initHeading=getDirection();
+        gyro.resetZAxisIntegrator();
+        final double maxPower = 0.5;
+        final double minPower = 0.2;
+        double power = maxPower;
+        resetEncoders();
+        double leftDir, rightDir;
+        if (angle > 0) {
+            leftDir = 1;
+            rightDir = -1;
+        } else {
+            rightDir = 1;
+            leftDir = -1;
         }
+        left.setPower(power * leftDir);
+        right.setPower(power * rightDir);
+        while (Math.abs(getDirection()-initHeading) < Math.abs(angle)) {
+            try {
+                sleep(35);
+            }
+            catch (InterruptedException e){
+                e.printStackTrace();
+            }
+            power = maxPower * Math.min(maxPower, ((Math.min(90, Math.abs(gyro.getHeading() - angle))) / 90d) + minPower);
+            int leftPos = Math.abs(left.getCurrentPosition());
+            int rightPos = Math.abs(right.getCurrentPosition());
+            if (leftPos > rightPos) {
+//                left.setPower(power * (1 - Math.min(100, leftPos - rightPos) / 100d) * leftDir);
+                left.setPower(power*leftDir);
+                right.setPower(power * rightDir);
+            } else if (rightPos > leftPos) {
+//                right.setPower(power * (1 - Math.min(100, rightPos - leftPos) / 100d) * rightDir);
+                right.setPower(power * rightDir);
+                left.setPower(power * leftDir);
+            }
+            telemetry.addData("angle", Math.abs(getDirection()-initHeading));
+            telemetry.addData("power", power);
+            telemetry.update();
+        }
+        left.setPower(0);
+        right.setPower(0);
+    }
 
-    protected void turn(int angle){
+    protected void turn(int angle) {
         int initHeading=getDirection();
         int heading=getDirection();
-
     }
 
 }
