@@ -1,5 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
+
+import java.util.Stack;
+
 public class ButtonPusher extends DriveOp implements BeaconConstants {
 	private OpticalDistanceSensor ods;
     private ColorSensor cs;
@@ -14,7 +20,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     private double sleepStart;
     private double initLightVal;
     private double crPower;
-    private boolean alignRight;
+    protected boolean alignRight;
 
 	public void init() {
 		super.init();

@@ -1,6 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-public class LoopAutonomosOp extends ButtonPusher {
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+@Autonomous(name="AutonomousLoop")
+
+public class LoopAutonomousOp extends ButtonPusher implements BeaconConstants {
 
 	public void init() {
 		super.init();
@@ -9,18 +13,18 @@ public class LoopAutonomosOp extends ButtonPusher {
 
 	public void loop() {
 		switch(state) {
-			case State.AUTONOMOUS_START:
+			case AUTONOMOUS_START:
 				nextStates.push(State.PUSH_BEACON_BUTTON);
 				nextStates.push(State.AUTONOMOUS_SECOND_BEACON);
-				driveDist = INIT_DRIVE_DIST; 
+				driveDist = INIT_DRIVE_DISTANCE;
 				state = State.DRIVE_DIST;
 				break;
-			case State.AUTONOMOUS_SECOND_BEACON:
+			case AUTONOMOUS_SECOND_BEACON:
 				nextStates.push(State.AUTONOMOUS_STOP);
 				// TODO add 90 degree turn and drive.
 				state = State.PUSH_BEACON_BUTTON;
 				break;
-			case State.AUTONOMOUS_STOP:
+			case AUTONOMOUS_STOP:
 				// Do nothing, wait for time to run out.
 				break;
 			default:
