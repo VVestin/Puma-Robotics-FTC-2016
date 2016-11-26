@@ -24,8 +24,8 @@ public class ColorSensorOp extends OpMode {
     private ColorSensor cs;
     private CRServo s;
 
-    //start in passive - identify color (start with finding blue)
-    //once color, move to active and find button (take averages or contrast?)
+    // Start in passive - identify color (start with finding blue)
+    // Once color, move to active and find button (take averages or contrast?)
 
     public void init() {
         cs = hardwareMap.colorSensor.get("color");
