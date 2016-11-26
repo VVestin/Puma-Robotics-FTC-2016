@@ -58,7 +58,7 @@ public class BeaconScanner extends LinearOpMode {
         crservo.setPower(0);
         sleep(500);
 
-        //button identification
+        // Button identification
         cs.enableLed(true);
         sleep(500);
         power /= 2;
@@ -85,17 +85,15 @@ public class BeaconScanner extends LinearOpMode {
     }
 
     private class LightReading{
-        //time = ms thing, light value = avg brightness, color Value = c, diff (i) LV - (i-1) LV
+        // Time = ms thing, light value = avg brightness, color Value = c, diff (i) LV - (i-1) LV
         private int time; private double lightValue; private Color colorValue;
-        //constructor
+        // Constructor
         public LightReading(int time, double lightValue, Color colorValue){
-            //instance variables
+            // Instance variables
             this.time = time; this.lightValue = lightValue; this.colorValue = colorValue;
         }
 
     }
 
-    //sys print is now telemetry.add data or telemetry.logdata
-    //collections.sort
 
 }

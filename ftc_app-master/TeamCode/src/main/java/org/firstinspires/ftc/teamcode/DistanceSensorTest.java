@@ -14,11 +14,11 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 
 @Autonomous(name = "DistanceSensorTest", group = "SensorTest")
 public class DistanceSensorTest extends OpMode {
-    byte[] range1Cache; //The read will return an array of bytes. They are stored in this variable
+    byte[] range1Cache; // The read will return an array of bytes. They are stored in this variable
 
-    I2cAddr RANGE1ADDRESS = new I2cAddr(0x14); //Default I2C address for MR Range (7-bit)
-    public static final int RANGE1_REG_START = 0x04; //Register to start reading
-    public static final int RANGE1_READ_LENGTH = 2; //Number of byte to read
+    I2cAddr RANGE1ADDRESS = new I2cAddr(0x14); // Default I2C address for MR Range (7-bit)
+    public static final int RANGE1_REG_START = 0x04; // Register to start reading
+    public static final int RANGE1_READ_LENGTH = 2; // Number of byte to read
 
     public I2cDevice RANGE1;
     public I2cDeviceSynch RANGE1Reader;

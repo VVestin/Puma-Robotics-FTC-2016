@@ -47,7 +47,7 @@ public abstract class AutoDriveOp extends LinearOpMode {
         left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    // moves a set number of encoder ticks
+    // Moves a set number of encoder ticks
     protected void moveTicks(int ticks) {
 //        telemetry.addData("Moving ticks", ticks);
 //        telemetry.update();
@@ -100,7 +100,7 @@ public abstract class AutoDriveOp extends LinearOpMode {
 
     // Rotate relative to current position (- is left, + is right)
     // We want to try doing this with encoders
-    // ffs comment your damn code weston
+    // FFS comment your damn code Weston
     protected void rotateBad(int angle) {
         int initHeading=getDirection();
         gyro.resetZAxisIntegrator();

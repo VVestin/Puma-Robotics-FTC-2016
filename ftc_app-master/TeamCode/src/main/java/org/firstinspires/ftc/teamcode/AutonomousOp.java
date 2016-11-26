@@ -31,7 +31,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
     private CRServo crservo;
     private double crPower = CR_POWER;
 
-    //Vuforia stuff
+    // Vuforia stuff
     private VuforiaLocalizer vuforiaLocalizer;
     private VuforiaLocalizer.Parameters parameters;
     private VuforiaTrackables visionTargets;
@@ -47,7 +47,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
     private OpenGLMatrix lastKnownLocation;
     private OpenGLMatrix phoneLocation;
 
-    //stupidly long license key
+    // Stupidly long license key
     public static final String VUFORIA_KEY = "AV4ONxv/////AAAAGefaDmLKjkgWifNHOt4h8QgFb23EhhiUz7Po/rcnXDMuJHa2Okvh/NLUSza5phLaIuyvWUINyu/cyKpmChyUCJ/A05QHnq04DK6FE36G2ihZTKbHfaJc/sz3LBIGnNa0Hwv+NZCYxNKsnm5IDBDx//c6btS/v1+6ESNE2YdieabitaPyH0RDBppIRcX2ufK6Fk71GydEz2pXkfnG8QN1zJRJn+PHf1Gg70SLF/aXHhGBVyudSlMk+EE89Or5ZyJLCSmUbS0LAHoBiVoSUtFb25iMSd/Zf3DsBPr/hZGKTfd7/c6BqeSKOidNPnOryVYThQM3hec5sbToDLneUqyhXRlAiifCw7x0he3XfFJp+NH0"; // Insert your own key here
 
 
@@ -71,7 +71,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
         for(int i = 0; i < 2; i++) {
             left.setPower(LINE_FORWARD_POWER);
             right.setPower(LINE_FORWARD_POWER);
-            //move so center is over white line
+            // Move so center is over white line
             while (ods.getLightDetected() - initLightVal < ODS_WHITE_THRESHOLD) {
 //                int leftPos = left.getCurrentPosition();
 //                int rightPos = right.getCurrentPosition();
@@ -95,7 +95,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
             right.setPower(0);
             Thread.sleep(200);
 
-            //align robot along the white line
+            // Align robot along the white line
             if (RED_TEAM) {
                 right.setPower(ALIGN_POWER);
                 left.setPower(-ALIGN_POWER);
@@ -110,7 +110,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
             right.setPower(0);
             Thread.sleep(300);
 
-            //align with images using vuforia
+            // Align with images using vuforia
             visionTargets.activate();
             OpenGLMatrix latestLocation = getLocation();
 
@@ -119,7 +119,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
             }
 
             int angle = getAngleFromMatrix(lastKnownLocation);
-            int anglebuffer = 2; //tweak this
+            int anglebuffer = 2; // Tweak this
 
             while (Math.abs(angle) - 90 > anglebuffer) {
                 if ((angle < 0 && angle > -90 + anglebuffer) || (angle > 0 && angle > 90 + anglebuffer)) {
@@ -146,7 +146,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
             right.setPower(0);
 
 
-            //drive forward until colors
+            // Drive forward until colors
             cs.enableLed(true);
             sleep(500);
             left.setPower(FIND_BEACON_POWER);
@@ -157,20 +157,20 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
                 telemetry.update();
             }
 
-            //stop before the wall
+            // Stop before the wall
             sleep(100);
             left.setPower(0);
             right.setPower(0);
 
-            //scan
+            // Scan
             scanBeacon();
 
-            //pressing the button
+            // Pressing the button
             right.setPower(PUSH_BUTTON_POWER);
             left.setPower(PUSH_BUTTON_POWER);
             sleep(1000);
 
-            //back up!
+            // Back up!
             right.setPower(-PUSH_BUTTON_POWER);
             left.setPower(-PUSH_BUTTON_POWER);
             crservo.setPower(crPower);
@@ -198,17 +198,17 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
 
     public void scanBeacon() {
         try {
-            //set passive
+            // Set passive
             boolean wentLeft = true;
             cs.enableLed(false);
             sleep(500);
             double power = CR_POWER;
             crservo.setPower(power);
 
-            //scan until correct or incorrect color
+            // Scan until correct or incorrect color
             while (Math.abs(cs.red() - cs.blue()) <= 1 && !(cs.red() > 0 && cs.blue() == 0))
                 sleep(30);
-            //turn if wrong color, else stay
+            // Turn if wrong color, else stay
             if (cs.red() > cs.blue() != RED_TEAM) {
                 power = -power;
                 crservo.setPower(power);
@@ -218,13 +218,13 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
                 while (Math.abs(cs.red() - cs.blue()) <= 1)
                     sleep(30); // Go until you see one color more than the other
             }
-            //error in blue edge
+            // Error in blue edge
             if (!RED_TEAM)
                 sleep(200);
             crservo.setPower(0);
             sleep(500);
 
-            //button identification
+            // Button identification
             cs.enableLed(true);
             sleep(500);
             power /= 2;
@@ -255,10 +255,10 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
         visionTargets = vuforiaLocalizer.loadTrackablesFromAsset("FTC_2016-17");
 
         // Setup the targets to be tracked
-        //origin for coordinate system is set to the red corner.
-        //+x direction is set to side without beacons,
-        //+y direction set to side with beacons,
-        //+z direction set to out of field.
+        // Origin for coordinate system is set to the red corner.
+        // +x direction is set to side without beacons,
+        // +y direction set to side with beacons,
+        // +z direction set to out of field.
         wheels = visionTargets.get(0); // 0 corresponds to the wheels target
         wheels.setName("Wheels");
         wheels.setLocation(createMatrix(2100, 3600, 150, 90, 0, 0));
@@ -293,15 +293,15 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
     }
 
     public OpenGLMatrix getLocation(){
-        OpenGLMatrix location = createMatrix(0, 0, 0, 0, 0, 0);//just set to orign since it'll get updated no matter what at this location on the field
+        OpenGLMatrix location = createMatrix(0, 0, 0, 0, 0, 0);// Just set to orign since it'll get updated no matter what at this location on the field
 
-        if(gearListener.isVisible()){ //if gears picture is visible set location based on that picture
+        if(gearListener.isVisible()){ // If gears picture is visible set location based on that picture
             location = gearListener.getUpdatedRobotLocation();
-        }else if(toolListener.isVisible()){ //if tools picture is visible set location based on that picture
+        }else if(toolListener.isVisible()){ // If tools picture is visible set location based on that picture
             location = toolListener.getUpdatedRobotLocation();
-        }else if(wheelListener.isVisible()){ //if wheels picture is visible set location based on that picture
+        }else if(wheelListener.isVisible()){ // If wheels picture is visible set location based on that picture
             location = wheelListener.getUpdatedRobotLocation();
-        }else if(legoListener.isVisible()) { //if legos picture is visible set location based on that picture
+        }else if(legoListener.isVisible()) { // If Legos picture is visible set location based on that picture
             location = legoListener.getUpdatedRobotLocation();
         }
 

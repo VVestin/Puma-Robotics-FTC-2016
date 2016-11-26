@@ -101,7 +101,7 @@ public class TestVuforiaOp extends LinearOpMode
         visionTargets = vuforiaLocalizer.loadTrackablesFromAsset("FTC_2016-17");
 
         // Setup the targets to be tracked
-        //origin for coordinate system is set to the red corner.
+        // Origin for coordinate system is set to the red corner.
         //+x direction is set to side without beacons,
         //+y direction set to side with beacons,
         //+z direction set to out of field.
@@ -140,13 +140,13 @@ public class TestVuforiaOp extends LinearOpMode
 
     public OpenGLMatrix getLocation(){
         OpenGLMatrix location = createMatrix(0, 0, 0, 0, 0, 0);//just set to orign since it'll get updated no matter what at this location on the field
-        if(gearListener.isVisible()){ //if gears picture is visible set location based on that picture
+        if(gearListener.isVisible()){ // If gears picture is visible set location based on that picture
             location = gearListener.getUpdatedRobotLocation();
-        }else if(toolListener.isVisible()){ //if tools picture is visible set location based on that picture
+        }else if(toolListener.isVisible()){ // If tools picture is visible set location based on that picture
             location = toolListener.getUpdatedRobotLocation();
-        } else if(wheelListener.isVisible()){ //if wheels picture is visible set location based on that picture
+        } else if(wheelListener.isVisible()){ // If wheels picture is visible set location based on that picture
             location = wheelListener.getUpdatedRobotLocation();
-        }else if(legoListener.isVisible()) { //if legos picture is visible set location based on that picture
+        }else if(legoListener.isVisible()) { // If Legos picture is visible set location based on that picture
             location = legoListener.getUpdatedRobotLocation();
         }
         return location;
