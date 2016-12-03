@@ -29,9 +29,11 @@ public abstract class DriveOp extends OpMode {
         gyro.calibrate();
 	}
 
-	public void loop() {
-		// TODO move turn and rotate functionality here as a finite state machine	
-	}
+    protected int getDirection() {
+        int angle = gyro.getHeading();
+        if (angle > 180) angle -= 360;
+        return -angle;
+    }
 
     protected void resetEncoders() {
         right.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

@@ -24,9 +24,9 @@ import static android.graphics.PathDashPathEffect.Style.ROTATE;
 import static java.lang.Integer.parseInt;
 import static java.lang.Thread.sleep;
 
-@TeleOp(name="ButtonPusher")
-public class ButtonPusher extends DriveOp implements BeaconConstants {
-	private OpticalDistanceSensor ods;
+@TeleOp(name="MrDButtonPusher")
+public class MrDButtonPusher extends DriveOp implements BeaconConstants {
+    private OpticalDistanceSensor ods;
     private ColorSensor cs;
     private ColorSensor front;
     protected CRServo crservo;
@@ -62,9 +62,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
 
     public static final String VUFORIA_KEY = "AV4ONxv/////AAAAGefaDmLKjkgWifNHOt4h8QgFb23EhhiUz7Po/rcnXDMuJHa2Okvh/NLUSza5phLaIuyvWUINyu/cyKpmChyUCJ/A05QHnq04DK6FE36G2ihZTKbHfaJc/sz3LBIGnNa0Hwv+NZCYxNKsnm5IDBDx//c6btS/v1+6ESNE2YdieabitaPyH0RDBppIRcX2ufK6Fk71GydEz2pXkfnG8QN1zJRJn+PHf1Gg70SLF/aXHhGBVyudSlMk+EE89Or5ZyJLCSmUbS0LAHoBiVoSUtFb25iMSd/Zf3DsBPr/hZGKTfd7/c6BqeSKOidNPnOryVYThQM3hec5sbToDLneUqyhXRlAiifCw7x0he3XfFJp+NH0"; // Insert your own key here
 
-	public void init() {
+    public void init() {
         telemetry.addData("Initializing ButtonPusher", true);
-		super.init();
+        super.init();
         nextStates = new Stack<State>();
         ods = hardwareMap.opticalDistanceSensor.get("ods");
         cs = hardwareMap.colorSensor.get("color");
@@ -72,12 +72,12 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
         crservo = hardwareMap.crservo.get("servo");
         lastKnownLocation=createMatrix(0, 0, 0, 0, 0, 0);
 //        setupVuforia();
-	}
+    }
 
-	public void loop() {
-		telemetry.addData("State", state);
-		switch (state) {
-			case PUSH_BEACON_START: //entry point state
+    public void loop() {
+        telemetry.addData("State", state);
+        switch (state) {
+            case PUSH_BEACON_START: //entry point state
                 state = State.FIND_LINE;
                 nextStates.push(State.CENTER_SERVO);
                 nextStates.push(State.PUSH_BUTTON);
@@ -139,7 +139,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         sleepLength = .1;
                         state = State.SLEEP;
                     } else {
-                        sleepLength = .1;
+                        sleepLength = .2;
                         state = State.SLEEP;
                         nextStates.push(State.ROTATE_OFF);
                     }
@@ -184,13 +184,16 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         state = State.SLEEP;
                     } else { // Code executed after aligning fails
                         nextStates.push(State.ALIGN_LINE);
-                        state = State.FIND_LINE;
+                        nextStates.push(State.FIND_LINE);
+                        rotateAngle = (alignRight == crossedLine ? ALIGN_ROTATE_CORRECTION : -ALIGN_ROTATE_CORRECTION);
                         alignRight = !alignRight;
+                        state = State.ROTATE;
                         telemetry.addData("Crossed Line: ", crossedLine);
                         telemetry.update();
-                    } if(ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD){
-                        crossedLine = true;
                     }
+                }
+                if (ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD) {
+                    crossedLine = true;
                 }
                 break;
             case VUFORIA_ALIGN:
@@ -233,7 +236,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 if (time - sleepStart >= sleepLength)
                     state = nextStates.pop();
                 break;
-            case DRIVE_TO_BEACON:// Drives forward
+            case DRIVE_TO_BEACON://drives forward
                 cs.enableLed(false);
                 cs.enableLed(true);
                 left.setPower(FIND_BEACON_POWER);
@@ -241,8 +244,6 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.DRIVE_TO_BEACON_LOOP;
                 break;
             case DRIVE_TO_BEACON_LOOP: //completes drive forward
-                // Assumes middle light sensor never loses the line
-                // Will correct for front light sensor losing the line
                 if (avg(front) < FRONT_WHITE_THRESHOLD) {
                     state = State.REALIGN;
                 }
@@ -254,7 +255,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     state = State.SLEEP;
                 }
                 break;
-            case DRIVE_TO_BEACON_STOP: // Stops the motors after sleep
+            case DRIVE_TO_BEACON_STOP: //stops the motors after sleep
                 left.setPower(0);
                 right.setPower(0);
                 state = nextStates.pop();
@@ -268,7 +269,6 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     right.setPower(ALIGN_POWER);
                     left.setPower(-ALIGN_POWER);
                 }
-                state = State.REALIGN_LOOP;
                 break;
             case REALIGN_LOOP:
                 if(avg(front) >= FRONT_WHITE_THRESHOLD){
@@ -339,7 +339,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case PUSH_BUTTON_STOP:
                 right.setPower(0);
                 left.setPower(0);
-				state = nextStates.pop();
+                state = nextStates.pop();
                 break;
             case CENTER_SERVO:
                 crservo.setPower(wentLeft ? -CR_POWER : CR_POWER);
@@ -353,8 +353,8 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 nextStates.pop();
         }
 
-	}
-    
+    }
+
     public double avg() {
         return avg(cs);
     }
