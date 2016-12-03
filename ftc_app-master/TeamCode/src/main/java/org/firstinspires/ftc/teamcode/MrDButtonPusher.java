@@ -101,7 +101,7 @@ public class MrDButtonPusher extends DriveOp implements BeaconConstants {
                 }
                 break;
             case ROTATE:
-                gyro.resetZAxisIntegrator();
+                //gyro.resetZAxisIntegrator();
                 if (rotateAngle < 0) {
                     left.setPower(-.2);
                     right.setPower(.2);
