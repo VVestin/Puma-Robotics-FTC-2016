@@ -66,7 +66,7 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
         double initLightVal = ods.getLightDetected();
         double initColorVal = avg(front);
 
-        moveInches(INIT_DRIVE_DISTANCE); //move to roughly the white line
+        moveInches(INIT_DRIVE_DISTANCE); // Move to roughly the white line
 
         for(int i = 0; i < 2; i++) {
             left.setPower(LINE_FORWARD_POWER);
