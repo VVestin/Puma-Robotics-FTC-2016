@@ -26,9 +26,9 @@ import static java.lang.Thread.sleep;
 
 @TeleOp(name="ButtonPusher")
 public class ButtonPusher extends DriveOp implements BeaconConstants {
-	private OpticalDistanceSensor ods;
-    private ColorSensor cs;
-    private OpticalDistanceSensor front;
+	protected OpticalDistanceSensor ods;
+    protected ColorSensor cs;
+    protected OpticalDistanceSensor front;
     protected CRServo crservo;
     protected State state;
     protected boolean wentLeft = true;
