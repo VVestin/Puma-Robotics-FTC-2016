@@ -28,7 +28,7 @@ import static java.lang.Thread.sleep;
 public class ButtonPusher extends DriveOp implements BeaconConstants {
 	private OpticalDistanceSensor ods;
     private ColorSensor cs;
-    private ColorSensor front;
+    private OpticalDistanceSensor front;
     protected CRServo crservo;
     protected State state;
     protected boolean wentLeft = true;
@@ -68,7 +68,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
         nextStates = new Stack<State>();
         ods = hardwareMap.opticalDistanceSensor.get("ods");
         cs = hardwareMap.colorSensor.get("color");
-        front = hardwareMap.colorSensor.get("front");
+        front = hardwareMap.opticalDistanceSensor.get("front");
         crservo = hardwareMap.crservo.get("servo");
         lastKnownLocation=createMatrix(0, 0, 0, 0, 0, 0);
 //        setupVuforia();
@@ -94,7 +94,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.DRIVE_DIST_LOOP;
                 break;
             case DRIVE_DIST_LOOP: //drives forward set d
-                if (left.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist && left.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist) {
+                if (left.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist && right.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist) {
                     left.setPower(0);
                     right.setPower(0);
                     state = nextStates.pop();
@@ -132,8 +132,8 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.FIND_LINE_LOOP;
                 break;
             case FIND_LINE_LOOP: //stops driving once line
-                if (ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD){
-                    if (avg(front) >= FRONT_WHITE_THRESHOLD) {
+                if (seesWhite(ods)){
+                    if (seesWhite(front)) {
                         left.setPower(0);
                         right.setPower(0);
                         sleepLength = .1;
@@ -156,7 +156,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.ROTATE_OFF_LOOP;
                 break;
             case ROTATE_OFF_LOOP: // Rotate until not white
-                if (!(ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD)){
+                if (!seesWhite(ods)){
                     left.setPower(0);
                     right.setPower(0);
                     sleepLength = .1;
@@ -176,10 +176,10 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.ALIGN_LINE_LOOP;
                 break;
             case ALIGN_LINE_LOOP: // Completes turn - changes states
-                if (avg(front) >= FRONT_WHITE_THRESHOLD) {
+                if (seesWhite(front)) {
                     left.setPower(0);
                     right.setPower(0);
-                    if (ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD) {
+                    if (seesWhite(ods)) {
                         sleepLength = .3;
                         state = State.SLEEP;
                     } else { // Code executed after aligning fails
@@ -188,7 +188,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         alignRight = !alignRight;
                         telemetry.addData("Crossed Line: ", crossedLine);
                         telemetry.update();
-                    } if(ods.getLightDetected() - initLightVal > ODS_WHITE_THRESHOLD){
+                    } if(seesWhite(ods)){
                         crossedLine = true;
                     }
                 }
@@ -243,7 +243,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case DRIVE_TO_BEACON_LOOP: //completes drive forward
                 // Assumes middle light sensor never loses the line
                 // Will correct for front light sensor losing the line
-                if (avg(front) < FRONT_WHITE_THRESHOLD) {
+                if (!seesWhite(front)) {
                     state = State.REALIGN;
                 }
                 if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
@@ -271,7 +271,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.REALIGN_LOOP;
                 break;
             case REALIGN_LOOP:
-                if(avg(front) >= FRONT_WHITE_THRESHOLD){
+                if(seesWhite(front)){
                     right.setPower(0);
                     left.setPower(0);
                     state = State.DRIVE_TO_BEACON;
@@ -354,7 +354,16 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
         }
 
 	}
-    
+
+    public boolean seesWhite(OpticalDistanceSensor light){
+        double diff = light.getLightDetected() - initLightVal;
+        if(diff > ODS_WHITE_THRESHOLD){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public double avg() {
         return avg(cs);
     }
