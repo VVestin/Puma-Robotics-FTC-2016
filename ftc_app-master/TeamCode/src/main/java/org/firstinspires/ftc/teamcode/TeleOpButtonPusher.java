@@ -13,7 +13,8 @@ public class TeleOpButtonPusher extends ButtonPusher {
     private boolean stickDrive;
     private boolean pushingBeacon;
     private boolean bDown;
-    private DcMotor arm;
+    private DcMotor arm1;
+    private DcMotor arm2;
     private Servo forkDrop;
 
     public void init() {
@@ -21,14 +22,16 @@ public class TeleOpButtonPusher extends ButtonPusher {
         stickDrive = true;
         pushingBeacon = false;
         state=state.DRIVER_CONTROL;
-        arm = hardwareMap.dcMotor.get("arm");
-        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        forkDrop = hardwareMap.servo.get("forkDrop");
+        arm1 = hardwareMap.dcMotor.get("arm1");
+        arm2 = hardwareMap.dcMotor.get("arm2");
+        arm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        forkDrop = hardwareMap.servo.get("forkDrop");
     }
 
-    public void start() {
-        forkDrop.setPosition(1);
-    }
+//    public void start() {
+//        forkDrop.setPosition(1);
+//   }
 
     public void loop() {
         if (state == State.DRIVER_CONTROL) {
@@ -58,9 +61,9 @@ public class TeleOpButtonPusher extends ButtonPusher {
                     bDown = false;
                 }
 
-                if (gamepad1.x) {
-                    forkDrop.setPosition(1);
-                }
+//                if (gamepad1.x) {
+//                    forkDrop.setPosition(1);
+//                }
 
                 if (gamepad1.dpad_left) {
                     crservo.setPower(.3);
@@ -71,11 +74,14 @@ public class TeleOpButtonPusher extends ButtonPusher {
                 }
 
                 if (gamepad1.y) {
-                    arm.setPower(-.3);
+                    arm1.setPower(-.3);
+                    arm2.setPower(-.3);
                 } else if (gamepad1.a) {
-                    arm.setPower(.6);
+                    arm1.setPower(0.8);
+                    arm2.setPower(0.8);
                 } else {
-                    arm.setPower(0);
+                    arm1.setPower(0);
+                    arm2.setPower(0);
                 }
 
                 if (gamepad1.dpad_up) {
