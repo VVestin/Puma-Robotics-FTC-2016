@@ -100,8 +100,8 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     state = nextStates.pop();
                 }
                 break;
-            case ROTATE:
-                gyro.resetZAxisIntegrator();
+            case ROTATE: // TODO uncomment
+                // gyro.resetZAxisIntegrator();
                 if (rotateAngle < 0) {
                     left.setPower(-.2);
                     right.setPower(.2);

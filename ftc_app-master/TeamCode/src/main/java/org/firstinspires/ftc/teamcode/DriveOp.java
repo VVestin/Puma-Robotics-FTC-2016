@@ -9,14 +9,14 @@ public abstract class DriveOp extends OpMode {
 	protected static final double TICKS_PER_INCH = 1440 / (3.875 * Math.PI * 1.5); // TODO callibrate by testing
 
     protected DcMotor left, right;
-    protected GyroSensor gyro;
+    //protected GyroSensor gyro;
 
 	public void init() {
         telemetry.addData("Initializing DriveOp", true);
 
 		left = hardwareMap.dcMotor.get("left");
         right = hardwareMap.dcMotor.get("right");
-        gyro = hardwareMap.gyroSensor.get("gyro");
+        //gyro = hardwareMap.gyroSensor.get("gyro");
 
         left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -26,11 +26,11 @@ public abstract class DriveOp extends OpMode {
 
         resetEncoders();
 
-        gyro.calibrate();
+        //gyro.calibrate();
 	}
 
     protected int getDirection() {
-        int angle = gyro.getHeading();
+        int angle = 0;//gyro.getHeading();
         if (angle > 180) angle -= 360;
         return -angle;
     }
