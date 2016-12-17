@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 /**
@@ -10,72 +11,91 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 
 @TeleOp(name="BasicTeleOp", group="MotorTest")
-public class BasicTeleOp extends DriveOp {
-	private boolean stickDrive;
-    private boolean bDown;
-    private DcMotor arm;
-    private CRServo crservo;
-    private Servo forkDrop;
+public class BasicTeleOp extends ButtonPusher {
+    protected static final double FORK_LOCKED = 1, FORK_UNLOCKED = 0;
+    protected boolean bDown;
+    protected boolean xDown;
+    protected boolean stopArm;
+    protected boolean slowDrive;
+    protected DcMotor arm1;
+    protected DcMotor arm2;
+    protected CRServo crservo;
+    protected Servo forkDrop;
 
     public void init() {
-		super.init();
-        stickDrive = true;
-        arm = hardwareMap.dcMotor.get("arm");
-        crservo = hardwareMap.crservo.get("servo");
-        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        super.init();
+        stopArm = true;
+        slowDrive = false;
+        arm1 = hardwareMap.dcMotor.get("arm1");
+        arm2 = hardwareMap.dcMotor.get("arm2");
+        arm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm2.setDirection(DcMotorSimple.Direction.REVERSE);
         forkDrop = hardwareMap.servo.get("forkDrop");
-        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        while (arm.isBusy());
-        arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        crservo = hardwareMap.crservo.get("servo");
+        forkDrop.setPosition(FORK_UNLOCKED);
+        state = State.DRIVER_CONTROL;
+    }
+
+    public void start() {
+        forkDrop.setPosition(FORK_LOCKED);
+        stopArm = true;
     }
 
     public void loop() {
-        telemetry.addData("driver control", true);
-        telemetry.addData("drive mode", stickDrive ? "stick" : "trigger");
-        if (stickDrive) {
-            left.setPower(-gamepad1.left_stick_y);
-            right.setPower(-gamepad1.right_stick_y);
-        } else {
-            if (gamepad1.right_bumper) {
-                right.setPower(-.5);
+        if (state == State.DRIVER_CONTROL) {
+            telemetry.addData("driver control", true);
+            if (slowDrive) {
+                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 3d);
+                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 3d);
             } else {
-                right.setPower(gamepad1.right_trigger);
+                left.setPower(Math.pow(-gamepad1.left_stick_y, 3));
+                right.setPower(Math.pow(-gamepad1.right_stick_y, 3));
             }
-            if (gamepad1.left_bumper) {
-                left.setPower(-.5);
+            if (gamepad1.b && !bDown) {
+                slowDrive = !slowDrive;
+                bDown = true;
+            } else if (!gamepad1.b) {
+                bDown = false;
+            }
+
+            if (gamepad1.x && !xDown) {
+                stopArm = !stopArm;
+                if (stopArm)
+                    forkDrop.setPosition(FORK_LOCKED);
+                else
+                    forkDrop.setPosition(FORK_UNLOCKED);
+                xDown = true;
+            } else if (!gamepad1.x) {
+                xDown = false;
+            }
+
+            if (gamepad1.dpad_left) {
+                crservo.setPower(.3);
+            } else if (gamepad1.dpad_right) {
+                crservo.setPower(-.3);
             } else {
-                left.setPower(gamepad1.left_trigger);
+                crservo.setPower(0);
             }
-        }
 
-        if (gamepad1.b && !bDown) {
-            stickDrive = !stickDrive;
-            bDown = true;
-        } else if (!gamepad1.b) {
-            bDown = false;
-        }
-
-        if (gamepad1.x) {
-            forkDrop.setPosition(1);
-        }
-
-        if (gamepad1.dpad_left) {
-            crservo.setPower(.3);
-        } else if (gamepad1.dpad_right) {
-            crservo.setPower(-.3);
+            if (!stopArm) {
+                if (gamepad1.y) {
+                    arm1.setPower(1);
+                    arm2.setPower(1);
+                } else if (gamepad1.a) {
+                    arm1.setPower(-.25);
+                    arm2.setPower(-.25);
+                } else {
+                    arm1.setPower(0);
+                    arm2.setPower(0);
+                }
+            } else {
+                arm1.setPower(0);
+                arm2.setPower(0);
+            }
+            telemetry.addData("arm position", arm1.getCurrentPosition());
         } else {
-            crservo.setPower(0);
+            super.loop();
         }
-
-        if (gamepad1.y) {
-            arm.setPower(-.3);
-        } else if (gamepad1.a) {
-            arm.setPower(1);
-        } else {
-            arm.setPower(0);
-        }
-        telemetry.addData("driveMode", (stickDrive ? "stick drive" : "trigger drive"));
-        telemetry.addData("arm position", arm.getCurrentPosition());
-
     }
 }

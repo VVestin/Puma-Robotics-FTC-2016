@@ -6,11 +6,11 @@ package org.firstinspires.ftc.teamcode;
 
 public interface BeaconConstants {
     public static final boolean RED_TEAM = true;
-    public static final double LINE_FORWARD_POWER = 0.2;
+    public static final double LINE_FORWARD_POWER = 0.1;
     public static final double INIT_DRIVE_DISTANCE = 35;
-    public static final double LINE_SLOW_POWER = 0.15;
-    public static final double ALIGN_POWER = 0.1;
-    public static final double ODS_WHITE_THRESHOLD = 0.07;
+    public static final double LINE_SLOW_POWER = 0.1;
+    public static final double ALIGN_POWER = 0.15;
+    public static final double ODS_WHITE_THRESHOLD = 0.7;
     public static final double FRONT_WHITE_THRESHOLD = 10;
     public static final double CR_POWER = 0.3;
     public static final double SECOND_BEACON_DISTANCE = 24;
