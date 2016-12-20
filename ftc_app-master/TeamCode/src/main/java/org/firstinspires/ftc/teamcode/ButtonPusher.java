@@ -37,7 +37,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     protected double driveDist;
     protected double sleepLength;
     private double sleepStart;
-    private double rotateAngle;
+    protected double rotateAngle;
     private double initLightVal;
     private double crPower;
     protected boolean alignRight;
@@ -77,9 +77,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     public void loop() {
         telemetry.addData("State", state);
         switch (state) {
-            case PUSH_BEACON_START: //entry point state
+            case PUSH_BEACON_START: // Entry point state
                 state = State.FIND_LINE;
-                nextStates.push(State.CENTER_SERVO);
+                nextStates.push(State.BACK_UP);
                 nextStates.push(State.PUSH_BUTTON);
                 nextStates.push(State.SCAN_BEACON);
                 //nextStates.push(State.VUFORIA_ALIGN);
@@ -87,25 +87,27 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 //nextStates.push(State.ALIGN_LINE);
                 //nextStates.push(State.ROTATE_OFF);
                 break;
-            case DRIVE_DIST: //drives forward set d
+            case DRIVE_DIST: // Drives forward set d
                 resetEncoders();
                 left.setPower(LINE_FORWARD_POWER);
                 right.setPower(LINE_FORWARD_POWER);
                 state = State.DRIVE_DIST_LOOP;
                 break;
-            case DRIVE_DIST_LOOP: //drives forward set d
+            case DRIVE_DIST_LOOP: // Drives forward set d
+                left.setPower((LINE_FORWARD_POWER - LINE_SLOW_POWER) * (1 - left.getCurrentPosition() / (driveDist * TICKS_PER_INCH)) + LINE_SLOW_POWER);
+                right.setPower((LINE_FORWARD_POWER - LINE_SLOW_POWER) * (1 - right.getCurrentPosition() / (driveDist * TICKS_PER_INCH)) + LINE_SLOW_POWER);
                 if (left.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist && right.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist) {
                     left.setPower(0);
                     right.setPower(0);
                     state = nextStates.pop();
                 }
                 break;
-            case FIND_LINE: //drives forward until line
+            case FIND_LINE: // Drives forward until line
                 left.setPower(LINE_SLOW_POWER);
                 right.setPower(LINE_SLOW_POWER);
                 state = State.FIND_LINE_LOOP;
                 break;
-            case FIND_LINE_LOOP: //stops driving once line
+            case FIND_LINE_LOOP: // Stops driving once line
                 if (seesWhite(ods)){
                     if (seesWhite(front)) {
                         left.setPower(0);
@@ -117,6 +119,32 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         right.setPower(0);
                         state = State.ALIGN_LINE;
                     }
+                }
+                break;
+            case ROTATE: // TODO uncomment
+                gyro.resetZAxisIntegrator();
+                if (rotateAngle < 0) {
+                    left.setPower(-.2);
+                    right.setPower(.2);
+                } else {
+                    right.setPower(-.2);
+                    left.setPower(.2);
+                }
+                state = State.ROTATE_LOOP;
+                break;
+            case ROTATE_LOOP:
+                if (Math.abs(getDirection()) > Math.abs(rotateAngle) + 2) { // TODO replace magic numbers with constants
+                    if (rotateAngle < 0) {
+                        left.setPower(.2);
+                        right.setPower(-.2);
+                    } else {
+                        right.setPower(.2);
+                        left.setPower(-.2);
+                    }
+                } else if (Math.abs(getDirection()) > Math.abs(rotateAngle) - 1) {
+                    left.setPower(0);
+                    right.setPower(0);
+                    state = nextStates.pop();
                 }
                 break;
             case ALIGN_LINE: // Starts turn until on front LS on white line
@@ -147,7 +175,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 }
 
                 int angle = getAngleFromMatrix(lastKnownLocation);
-                int anglebuffer = 2; //tweak this
+                int anglebuffer = 2; // Tweak this
 
                 if (Math.abs(angle) - 90 > anglebuffer) {
                     if ((angle < 0 && angle > -90 + anglebuffer) || (angle > 0 && angle > 90 + anglebuffer)) {
@@ -178,14 +206,14 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 if (time - sleepStart >= sleepLength)
                     state = nextStates.pop();
                 break;
-            case DRIVE_TO_BEACON://drives forward
+            case DRIVE_TO_BEACON:// Drives forward
                 cs.enableLed(false);
                 cs.enableLed(true);
                 left.setPower(FIND_BEACON_POWER);
                 right.setPower(FIND_BEACON_POWER);
                 state = State.DRIVE_TO_BEACON_LOOP;
                 break;
-            case DRIVE_TO_BEACON_LOOP: //completes drive forward
+            case DRIVE_TO_BEACON_LOOP: // Completes drive forward
                 if (!seesWhite(front)) {
                     state = State.REALIGN;
                 }
@@ -197,7 +225,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     state = State.SLEEP;
                 }
                 break;
-            case DRIVE_TO_BEACON_STOP: //stops the motors after sleep
+            case DRIVE_TO_BEACON_STOP: // Stops the motors after sleep
                 left.setPower(0);
                 right.setPower(0);
                 state = nextStates.pop();
@@ -205,11 +233,11 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case REALIGN:
                 startRealignTime = time;
                 if(alignRight){
-                    right.setPower(-ALIGN_POWER);
-                    left.setPower(ALIGN_POWER);
+                    right.setPower(-ALIGN_POWER / 1.5);
+                    left.setPower(ALIGN_POWER / 1.5);
                 } else {
-                    right.setPower(ALIGN_POWER);
-                    left.setPower(-ALIGN_POWER);
+                    right.setPower(ALIGN_POWER / 1.5);
+                    left.setPower(-ALIGN_POWER / 1.5);
                 }
                 state = State.REALIGN_LOOP;
                 break;
@@ -227,6 +255,11 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         left.setPower(ALIGN_POWER);
                     }
                     startRealignTime = time + REALIGN_TIME_THRESHOLD;
+                }
+                if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
+                    left.setPower(0);
+                    right.setPower(0);
+                    state = nextStates.pop();
                 }
                 break;
             case SCAN_BEACON:
@@ -284,16 +317,26 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 left.setPower(0);
                 state = nextStates.pop();
                 break;
-            case CENTER_SERVO:
+            case BACK_UP:
                 crservo.setPower(wentLeft ? -CR_POWER : CR_POWER);
                 sleepLength = CR_CENTER_TIME/1000d;
-                nextStates.push(State.SERVO_STOP);
+                right.setPower(-LINE_SLOW_POWER);
+                left.setPower(-LINE_SLOW_POWER);
+                resetEncoders();
+                nextStates.push(State.BACK_UP_LOOP);
                 state = State.SLEEP;
-                nextStates.pop();
                 break;
-            case SERVO_STOP:
+            case BACK_UP_LOOP:
+                // TODO Back up and turn 90 degrees to save time
                 crservo.setPower(0);
-                nextStates.pop();
+                right.setPower(-LINE_SLOW_POWER);
+                left.setPower(-LINE_SLOW_POWER);
+                if (Math.max(left.getCurrentPosition(), right.getCurrentPosition()) < -DRIVE_BACK * TICKS_PER_INCH){
+                    right.setPower(0);
+                    left.setPower(0);
+                    state = nextStates.pop();
+                }
+                break;
         }
 
     }

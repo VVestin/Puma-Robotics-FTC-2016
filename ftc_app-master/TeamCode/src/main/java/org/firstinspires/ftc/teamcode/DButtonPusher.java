@@ -79,7 +79,7 @@ public class DButtonPusher extends DriveOp implements BeaconConstants {
 		switch (state) {
 			case PUSH_BEACON_START: //entry point state
                 state = State.FIND_LINE;
-                nextStates.push(State.CENTER_SERVO);
+//                nextStates.push(State.CENTER_SERVO);
                 nextStates.push(State.PUSH_BUTTON);
                 nextStates.push(State.SCAN_BEACON);
                 //nextStates.push(State.VUFORIA_ALIGN);
@@ -346,16 +346,16 @@ public class DButtonPusher extends DriveOp implements BeaconConstants {
                 left.setPower(0);
 				state = nextStates.pop();
                 break;
-            case CENTER_SERVO:
-                crservo.setPower(wentLeft ? -CR_POWER : CR_POWER);
-                sleepLength = CR_CENTER_TIME/1000d;
-                nextStates.push(State.SERVO_STOP);
-                state = State.SLEEP;
-                nextStates.pop();
-                break;
-            case SERVO_STOP:
-                crservo.setPower(0);
-                nextStates.pop();
+//            case CENTER_SERVO:
+//                crservo.setPower(wentLeft ? -CR_POWER : CR_POWER);
+//                sleepLength = CR_CENTER_TIME/1000d;
+//                nextStates.push(State.SERVO_STOP);
+//                state = State.SLEEP;
+//                nextStates.pop();
+//                break;
+//            case SERVO_STOP:
+//                crservo.setPower(0);
+//                nextStates.pop();
         }
 
 	}
