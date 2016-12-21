@@ -151,22 +151,23 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case ROTATE: // TODO uncomment
                 gyro.resetZAxisIntegrator();
                 if (rotateAngle < 0) {
-                    left.setPower(-.2);
-                    right.setPower(.2);
+                    left.setPower(-.15);
+                    right.setPower(.15);
                 } else {
-                    right.setPower(-.2);
-                    left.setPower(.2);
+                    right.setPower(-.15);
+                    left.setPower(.15);
                 }
                 state = State.ROTATE_LOOP;
                 break;
             case ROTATE_LOOP:
-                if (Math.abs(getDirection()) > Math.abs(rotateAngle) + 2) { // TODO replace magic numbers with constants
+                if (Math.abs(getDirection()) > Math.abs(rotateAngle) + 2) {
+                    // TODO replace magic numbers with constants
                     if (rotateAngle < 0) {
-                        left.setPower(.2);
-                        right.setPower(-.2);
+                        left.setPower(.15);
+                        right.setPower(-.15);
                     } else {
-                        right.setPower(.2);
-                        left.setPower(-.2);
+                        right.setPower(.15);
+                        left.setPower(-.15);
                     }
                 } else if (Math.abs(getDirection()) > Math.abs(rotateAngle) - 1) {
                     left.setPower(0);
@@ -189,7 +190,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 if (seesWhite(front)) {
                     left.setPower(0);
                     right.setPower(0);
-                    sleepLength = .3;
+                    sleepLength = .15;
                     state = State.SLEEP;
                 }
                 break;
