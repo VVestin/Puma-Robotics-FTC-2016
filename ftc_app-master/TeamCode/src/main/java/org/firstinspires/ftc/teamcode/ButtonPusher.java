@@ -43,6 +43,8 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     protected boolean alignRight;
     private boolean crossedLine;
     private double startRealignTime;
+    protected double lastCheckTime;
+    protected double lastCheckTicks;
 
     //Vuforia stuff
     private VuforiaLocalizer vuforiaLocalizer;
@@ -88,17 +90,42 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 //nextStates.push(State.ROTATE_OFF);
                 break;
             case DRIVE_DIST: // Drives forward set d
+                lastCheckTime = time;
+                lastCheckTicks = 0;
                 resetEncoders();
-                left.setPower(LINE_FORWARD_POWER);
-                right.setPower(LINE_FORWARD_POWER);
+                if (driveDist < 0){
+                    left.setPower(-LINE_FORWARD_POWER);
+                    right.setPower(-LINE_FORWARD_POWER);
+                } else {
+                    left.setPower(LINE_FORWARD_POWER);
+                    right.setPower(LINE_FORWARD_POWER);
+                }
                 state = State.DRIVE_DIST_LOOP;
                 break;
             case DRIVE_DIST_LOOP: // Drives forward set d
-                left.setPower((LINE_FORWARD_POWER - LINE_SLOW_POWER) * (1 - left.getCurrentPosition() / (driveDist * TICKS_PER_INCH)) + LINE_SLOW_POWER);
-                right.setPower((LINE_FORWARD_POWER - LINE_SLOW_POWER) * (1 - right.getCurrentPosition() / (driveDist * TICKS_PER_INCH)) + LINE_SLOW_POWER);
-                if (left.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist && right.getCurrentPosition() > AutoDriveOp.TICKS_PER_INCH * driveDist) {
-                    left.setPower(0);
-                    right.setPower(0);
+                if (time - lastCheckTime > MOTOR_STUCK_THRESHOLD){
+                    if (Math.min(Math.abs(left.getCurrentPosition()), Math.abs(right.getCurrentPosition())) - Math.abs(lastCheckTicks) < MOTOR_STUCK_THRESHOLD * TICKS_PER_INCH){
+                        left.setPower(0);
+                        right.setPower(0);
+                        state = State.MOTOR_STUCK;
+                    }
+                    lastCheckTicks = Math.min(Math.abs(left.getCurrentPosition()), Math.abs(right.getCurrentPosition()));
+                    lastCheckTime = time;
+                }
+                double leftPower = (LINE_FORWARD_POWER - LINE_SLOW_POWER) * (1 - left.getCurrentPosition() / (driveDist * TICKS_PER_INCH)) + LINE_SLOW_POWER;
+                double rightPower = (LINE_FORWARD_POWER - LINE_SLOW_POWER) * (1 - right.getCurrentPosition() / (driveDist * TICKS_PER_INCH)) + LINE_SLOW_POWER;
+                if (driveDist < 0){
+                    left.setPower(-leftPower);
+                    right.setPower(-rightPower);
+                } else {
+                    left.setPower(leftPower);
+                    right.setPower(rightPower);
+                }
+                if (Math.abs(left.getCurrentPosition()) > AutoDriveOp.TICKS_PER_INCH * Math.abs(driveDist) && Math.abs(right.getCurrentPosition()) > AutoDriveOp.TICKS_PER_INCH * Math.abs(driveDist)) {
+                    if (nextStates.peek() != State.PUSH_BEACON_START){
+                        left.setPower(0);
+                        right.setPower(0);
+                    }
                     state = nextStates.pop();
                 }
                 break;
@@ -336,6 +363,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     left.setPower(0);
                     state = nextStates.pop();
                 }
+                break;
+            case MOTOR_STUCK:
+                telemetry.addData("STUCK!", true);
                 break;
         }
 

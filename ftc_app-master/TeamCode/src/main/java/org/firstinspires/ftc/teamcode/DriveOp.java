@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
 
 public abstract class DriveOp extends OpMode {
 	protected static final double TICKS_PER_INCH = 1440 / (3.875 * Math.PI * 1.5); // TODO callibrate by testing
+    public static final double MOTOR_STUCK_THRESHOLD = 2.5;
 
     protected DcMotor left, right;
     protected GyroSensor gyro;
