@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -45,6 +46,10 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     private double startRealignTime;
     protected double lastCheckTime;
     protected double lastCheckTicks;
+    protected boolean centerServo;
+    protected Servo forkDrop;
+    protected boolean centerServoMoving;
+    private double centerServoStartTime;
 
     //Vuforia stuff
     private VuforiaLocalizer vuforiaLocalizer;
@@ -72,12 +77,23 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
         cs = hardwareMap.colorSensor.get("color");
         front = hardwareMap.opticalDistanceSensor.get("front");
         crservo = hardwareMap.crservo.get("servo");
+        forkDrop = hardwareMap.servo.get("forkDrop");
         lastKnownLocation=createMatrix(0, 0, 0, 0, 0, 0);
 //        setupVuforia();
     }
 
     public void loop() {
         telemetry.addData("State", state);
+        if (centerServo) {
+            centerServoStartTime = time;
+            crservo.setPower(CR_POWER);
+            centerServo = false;
+            centerServoMoving = true;
+        }
+        if (time - centerServoStartTime > START_SERVO_TIME && centerServoMoving) {
+            crservo.setPower(0);
+            centerServoMoving = false;
+        }
         switch (state) {
             case PUSH_BEACON_START: // Entry point state
                 state = State.FIND_LINE;
@@ -151,7 +167,11 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 left.setPower(-LINE_SLOW_POWER);
                 right.setPower(-LINE_SLOW_POWER);
                 if (seesWhite(ods)){
-                    state = State.ROTATE_OFF_LOOP;
+                    nextStates.push(State.ROTATE_OFF_LOOP);
+                    sleepLength = 0.2;
+                    state = State.SLEEP;
+                } else {
+                    telemetry.addData("Grey: ", true);
                 }
                 break;
             case ROTATE_OFF_LOOP: // Rotate until not white
@@ -164,11 +184,11 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case ROTATE: // TODO uncomment
                 gyro.resetZAxisIntegrator();
                 if (rotateAngle < 0) {
-                    left.setPower(-.15);
-                    right.setPower(.15);
+                    left.setPower(-.25);
+                    right.setPower(.25);
                 } else {
-                    right.setPower(-.15);
-                    left.setPower(.15);
+                    right.setPower(-.25);
+                    left.setPower(.25);
                 }
                 state = State.ROTATE_LOOP;
                 break;
@@ -261,9 +281,10 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
                     left.setPower(0);
                     right.setPower(0);
-                    sleepLength = .1;
-                    nextStates.push(State.DRIVE_TO_BEACON_STOP);
-                    state = State.SLEEP;
+                    //sleepLength = .1;
+                    //nextStates.push(State.DRIVE_TO_BEACON_STOP);
+                    //state = State.SLEEP;
+                    state = nextStates.pop();
                 }
                 break;
             case DRIVE_TO_BEACON_STOP: // Stops the motors after sleep
@@ -273,12 +294,12 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 break;
             case REALIGN:
                 startRealignTime = time;
-                if(alignRight){
-                    right.setPower(-ALIGN_POWER / 1.5);
-                    left.setPower(ALIGN_POWER / 1.5);
+                if (true) { //alignRight) {
+                    right.setPower(-ALIGN_POWER);
+                    left.setPower(ALIGN_POWER);
                 } else {
-                    right.setPower(ALIGN_POWER / 1.5);
-                    left.setPower(-ALIGN_POWER / 1.5);
+                    right.setPower(ALIGN_POWER);
+                    left.setPower(-ALIGN_POWER);
                 }
                 state = State.REALIGN_LOOP;
                 break;
@@ -288,7 +309,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     left.setPower(0);
                     state = State.DRIVE_TO_BEACON;
                 } else if(time - startRealignTime > REALIGN_TIME_THRESHOLD){
-                    if(alignRight){
+                    if(true) { //alignRight){
                         right.setPower(ALIGN_POWER);
                         left.setPower(-ALIGN_POWER);
                     } else {
@@ -297,7 +318,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     }
                     startRealignTime = time + REALIGN_TIME_THRESHOLD;
                 }
-                if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
+                if (avg(cs) >= BEACON_FOUND_THRESHOLD && !RED_TEAM) {
                     left.setPower(0);
                     right.setPower(0);
                     state = nextStates.pop();
@@ -334,16 +355,25 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 break;
             case SCAN_FOR_BUTTON:
                 cs.enableLed(true);
-                crservo.setPower(wentLeft?1:-1*(CR_POWER/2.));
+                crservo.setPower(wentLeft?1:-1*(CR_POWER/3.));
                 sleepLength = .3;
                 nextStates.push(State.SCAN_FOR_BUTTON_LOOP);
                 state = State.SLEEP;
                 break;
             case SCAN_FOR_BUTTON_LOOP:
                 if(avg() <= CS_BLACK_THRESHOLD){
-                    crservo.setPower(0);
-                    state = nextStates.pop();
+                    if (true){ //!RED_TEAM) {
+                        sleepLength = 0.1;
+                        nextStates.push(State.SCAN_FOR_BUTTON_STOP);
+                        state = State.SLEEP;
+                    } else {
+                        state = State.SCAN_FOR_BUTTON_STOP;
+                    }
                 }
+                break;
+            case SCAN_FOR_BUTTON_STOP:
+                crservo.setPower(0);
+                state = nextStates.pop();
                 break;
             case PUSH_BUTTON:
                 right.setPower(PUSH_BUTTON_POWER);

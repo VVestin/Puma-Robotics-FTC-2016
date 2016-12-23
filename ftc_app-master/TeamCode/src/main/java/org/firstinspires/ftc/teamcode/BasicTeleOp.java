@@ -20,7 +20,6 @@ public class BasicTeleOp extends ButtonPusher {
     protected DcMotor arm1;
     protected DcMotor arm2;
     protected CRServo crservo;
-    protected Servo forkDrop;
 
     public void init() {
         super.init();
@@ -30,9 +29,9 @@ public class BasicTeleOp extends ButtonPusher {
         arm2 = hardwareMap.dcMotor.get("arm2");
         arm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         arm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm2.setDirection(DcMotorSimple.Direction.REVERSE);
-        forkDrop = hardwareMap.servo.get("forkDrop");
+        arm1.setDirection(DcMotorSimple.Direction.REVERSE);
         crservo = hardwareMap.crservo.get("servo");
+        forkDrop = hardwareMap.servo.get("forkDrop");
         forkDrop.setPosition(FORK_UNLOCKED);
         state = State.DRIVER_CONTROL;
     }
@@ -46,8 +45,8 @@ public class BasicTeleOp extends ButtonPusher {
         if (state == State.DRIVER_CONTROL) {
             telemetry.addData("driver control", true);
             if (slowDrive) {
-                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 3d);
-                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 3d);
+                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 5d);
+                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 5d);
             } else {
                 left.setPower(Math.pow(-gamepad1.left_stick_y, 3));
                 right.setPower(Math.pow(-gamepad1.right_stick_y, 3));

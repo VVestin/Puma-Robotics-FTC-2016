@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.hardware.ServoController;
 @TeleOp (name="ServoTest")
 public class ServoTestOp extends OpMode {
     private CRServo s;
-    private boolean hiSarah;
+    private boolean hiSara;
     private long start;
 
     public void init() {
@@ -29,9 +29,9 @@ public class ServoTestOp extends OpMode {
             s.setPower(power);
             start = System.currentTimeMillis();
 
-        } else if(gamepad1.b && !hiSarah){
+        } else if(gamepad1.b && !hiSara){
             s.setPower(0);
-            hiSarah = true;
+            hiSara = true;
             telemetry.addData("Time", System.currentTimeMillis() - start);
         }
     }

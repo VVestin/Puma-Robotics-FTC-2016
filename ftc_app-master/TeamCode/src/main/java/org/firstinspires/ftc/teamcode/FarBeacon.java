@@ -2,17 +2,13 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name="AutonomousBall")
+@Autonomous(name="FarBeacon")
 
-public class AutonomousBall extends ButtonPusher implements BeaconConstants {
+public class FarBeacon extends ButtonPusher implements BeaconConstants {
 
     public void init() {
         super.init();
         state = State.AUTONOMOUS_START;
-    }
-
-    public void start() {
-        forkDrop.setPosition(BasicTeleOp.FORK_LOCKED);
     }
 
     public void loop() {
@@ -20,29 +16,22 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
         switch (state) {
             case AUTONOMOUS_START:
                 nextStates.push(State.HIT_BALL_STOP);
-                nextStates.push(State.HIT_BALL);
                 nextStates.push(State.HIT_BALL_START);
                 nextStates.push(State.PUSH_BEACON_START);
-                nextStates.push(State.DRIVE_DIST);
-                centerServo = true;
-                driveDist = INIT_DRIVE_DISTANCE;
+                nextStates.push(State.FAR_BEACON_ADJ);
+                driveDist = 70;
                 alignRight = !RED_TEAM;
-                sleepLength = 1;
-                state = State.SLEEP;
+                state = State.DRIVE_DIST;
                 break;
-            case HIT_BALL_START:
-                rotateAngle = RED_TEAM?-40:40;
-                driveDist = -36;
+            case FAR_BEACON_ADJ:
+                driveDist = 24;
+                rotateAngle = RED_TEAM?-20:20;
                 state = State.ROTATE;
                 nextStates.push(State.DRIVE_DIST);
-//                driveDist = -60;
-//                rotateAngle = RED_TEAM?45:-45;
-//                state = State.DRIVE_DIST;
-//                nextStates.push(State.ROTATE);
                 break;
-            case HIT_BALL:
-                rotateAngle = RED_TEAM?80:-80;
-                driveDist = -24;
+            case HIT_BALL_START:
+                rotateAngle = RED_TEAM?45:-45;
+                driveDist = -70;
                 state = State.ROTATE;
                 nextStates.push(State.DRIVE_DIST);
                 break;
