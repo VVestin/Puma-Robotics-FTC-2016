@@ -86,8 +86,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 nextStates.push(State.SCAN_BEACON);
                 //nextStates.push(State.VUFORIA_ALIGN);
                 nextStates.push(State.DRIVE_TO_BEACON);
-                //nextStates.push(State.ALIGN_LINE);
-                //nextStates.push(State.ROTATE_OFF);
+                nextStates.push(State.ALIGN_LINE);
                 break;
             case DRIVE_DIST: // Drives forward set d
                 lastCheckTime = time;
@@ -144,8 +143,22 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     } else {;
                         left.setPower(0);
                         right.setPower(0);
-                        state = State.ALIGN_LINE;
+                        state = State.ROTATE_OFF;
                     }
+                }
+                break;
+            case ROTATE_OFF:
+                left.setPower(-LINE_SLOW_POWER);
+                right.setPower(-LINE_SLOW_POWER);
+                if (seesWhite(ods)){
+                    state = State.ROTATE_OFF_LOOP;
+                }
+                break;
+            case ROTATE_OFF_LOOP: // Rotate until not white
+                if (!seesWhite(ods)) {
+                    left.setPower(0);
+                    right.setPower(0);
+                    state = nextStates.pop();
                 }
                 break;
             case ROTATE: // TODO uncomment
@@ -336,7 +349,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 right.setPower(PUSH_BUTTON_POWER);
                 left.setPower(PUSH_BUTTON_POWER);
                 cs.enableLed(false);
-                sleepLength = 1.5;
+                sleepLength = PUSH_BEACON_TIME;
                 nextStates.push(State.PUSH_BUTTON_STOP);
                 state = State.SLEEP;
                 break;
