@@ -27,7 +27,9 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                 centerServo = true;
                 driveDist = INIT_DRIVE_DISTANCE;
                 alignRight = !RED_TEAM;
-                sleepLength = 1;
+                arm1.setPower(ARM_POWER);
+                arm2.setPower(ARM_POWER);
+                sleepLength = ARM_SLEEP_TIME;
                 state = State.SLEEP;
                 break;
             case HIT_BALL_START:

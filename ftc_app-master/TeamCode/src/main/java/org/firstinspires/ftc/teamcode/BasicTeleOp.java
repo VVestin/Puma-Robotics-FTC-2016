@@ -11,25 +11,19 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 
 @TeleOp(name="BasicTeleOp", group="MotorTest")
-public class BasicTeleOp extends ButtonPusher {
+public class BasicTeleOp extends ButtonPusher implements BeaconConstants {
     protected static final double FORK_LOCKED = 1, FORK_UNLOCKED = 0;
     protected boolean bDown;
+    protected boolean backwards = false;
     protected boolean xDown;
     protected boolean stopArm;
     protected boolean slowDrive;
-    protected DcMotor arm1;
-    protected DcMotor arm2;
     protected CRServo crservo;
 
     public void init() {
         super.init();
         stopArm = true;
         slowDrive = false;
-        arm1 = hardwareMap.dcMotor.get("arm1");
-        arm2 = hardwareMap.dcMotor.get("arm2");
-        arm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm1.setDirection(DcMotorSimple.Direction.REVERSE);
         crservo = hardwareMap.crservo.get("servo");
         forkDrop = hardwareMap.servo.get("forkDrop");
         forkDrop.setPosition(FORK_UNLOCKED);
@@ -45,8 +39,8 @@ public class BasicTeleOp extends ButtonPusher {
         if (state == State.DRIVER_CONTROL) {
             telemetry.addData("driver control", true);
             if (slowDrive) {
-                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 5d);
-                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 5d);
+                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 3d);
+                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 3d);
             } else {
                 left.setPower(Math.pow(-gamepad1.left_stick_y, 3));
                 right.setPower(Math.pow(-gamepad1.right_stick_y, 3));
@@ -77,13 +71,19 @@ public class BasicTeleOp extends ButtonPusher {
                 crservo.setPower(0);
             }
 
+            if (gamepad1.right_bumper) {
+                backwards = true;
+            } else if (gamepad1.left_bumper) {
+                backwards = false;
+            }
+
             if (!stopArm) {
                 if (gamepad1.y) {
-                    arm1.setPower(1);
-                    arm2.setPower(1);
+                    arm1.setPower(ARM_POWER);
+                    arm2.setPower(ARM_POWER);
                 } else if (gamepad1.a) {
-                    arm1.setPower(-.25);
-                    arm2.setPower(-.25);
+                    arm1.setPower(-ARM_SLOW_POWER);
+                    arm2.setPower(-ARM_SLOW_POWER);
                 } else {
                     arm1.setPower(0);
                     arm2.setPower(0);

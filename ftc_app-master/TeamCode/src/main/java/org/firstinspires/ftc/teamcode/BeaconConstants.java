@@ -10,8 +10,8 @@ public interface BeaconConstants {
     public static final double LINE_FORWARD_POWER = 0.7; // 0.5
     public static final double INIT_DRIVE_DISTANCE = 50;
     public static final double LINE_SLOW_POWER = 0.17; // 0.1
-    public static final double ALIGN_POWER = 0.3; // 0.15
-    public static final double ODS_WHITE_THRESHOLD = 0.7;
+    public static final double ALIGN_POWER = 0.16; // 0.15
+    public static final double ODS_WHITE_THRESHOLD = 0.6;
     public static final double FRONT_WHITE_THRESHOLD = 10;
     public static final double CR_POWER = 0.3;
     public static final double SECOND_BEACON_DISTANCE = 30;
@@ -23,6 +23,9 @@ public interface BeaconConstants {
     public static final double CS_BLACK_THRESHOLD = 3;
     public static final double REALIGN_TIME_THRESHOLD = 0.6; // 0.6
     public static final double PUSH_BEACON_TIME = 2; // 1.5
+    public static final double ARM_POWER = 1.0;
+    public static final double ARM_SLOW_POWER = 0.25;
+    public static final double ARM_SLEEP_TIME = 0.3;
     // TODO increase this and test
     public static final double ALIGN_ROTATE_CORRECTION = 6;
     public static final double DRIVE_BACK = 9;

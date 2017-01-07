@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -50,6 +52,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     protected Servo forkDrop;
     protected boolean centerServoMoving;
     private double centerServoStartTime;
+    protected DcMotor arm1;
+    protected DcMotor arm2;
+    protected int armPos;
 
     //Vuforia stuff
     private VuforiaLocalizer vuforiaLocalizer;
@@ -78,6 +83,11 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
         front = hardwareMap.opticalDistanceSensor.get("front");
         crservo = hardwareMap.crservo.get("servo");
         forkDrop = hardwareMap.servo.get("forkDrop");
+        arm1 = hardwareMap.dcMotor.get("arm1");
+        arm2 = hardwareMap.dcMotor.get("arm2");
+        arm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm1.setDirection(DcMotorSimple.Direction.REVERSE);
         lastKnownLocation=createMatrix(0, 0, 0, 0, 0, 0);
 //        setupVuforia();
     }
@@ -94,6 +104,17 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             crservo.setPower(0);
             centerServoMoving = false;
         }
+        if (arm1.getPower() != 1) {
+            if (arm1.getCurrentPosition() < armPos) {
+                arm1.setPower(ARM_SLOW_POWER);
+                arm2.setPower(ARM_SLOW_POWER);
+            } else {
+                arm1.setPower(0);
+                arm2.setPower(0);
+            }
+        }
+
+
         switch (state) {
             case PUSH_BEACON_START: // Entry point state
                 state = State.FIND_LINE;
@@ -103,11 +124,16 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 //nextStates.push(State.VUFORIA_ALIGN);
                 nextStates.push(State.DRIVE_TO_BEACON);
                 nextStates.push(State.ALIGN_LINE);
+                armPos = arm1.getCurrentPosition();
+                arm1.setPower(0);
+                arm2.setPower(0);
                 break;
             case DRIVE_DIST: // Drives forward set d
                 lastCheckTime = time;
                 lastCheckTicks = 0;
                 resetEncoders();
+                arm1.setPower(0);
+                arm2.setPower(0);
                 if (driveDist < 0){
                     left.setPower(-LINE_FORWARD_POWER);
                     right.setPower(-LINE_FORWARD_POWER);
