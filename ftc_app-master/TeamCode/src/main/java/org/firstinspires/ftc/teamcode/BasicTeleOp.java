@@ -39,8 +39,8 @@ public class BasicTeleOp extends ButtonPusher implements BeaconConstants {
         if (state == State.DRIVER_CONTROL) {
             telemetry.addData("driver control", true);
             if (slowDrive) {
-                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 3d);
-                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 3d);
+                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 5d);
+                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 5d);
             } else {
                 left.setPower(Math.pow(-gamepad1.left_stick_y, 3));
                 right.setPower(Math.pow(-gamepad1.right_stick_y, 3));
