@@ -367,7 +367,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 break;
             case SCAN_BEACON_START:
                 crservo.setPower(CR_POWER);
-                state = State.SCAN_BEACON_LOOP;
+                sleepLength = 0.2;
+                nextStates.push(State.SCAN_BEACON_LOOP);
+                state = State.SLEEP;
                 break;
             case SCAN_BEACON_LOOP:
                 if(!(Math.abs(cs.red() - cs.blue()) <= 1 && !(cs.red() > 0 && cs.blue() == 0))){

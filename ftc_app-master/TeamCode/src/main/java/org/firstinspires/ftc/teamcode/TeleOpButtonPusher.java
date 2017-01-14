@@ -51,9 +51,5 @@ public class TeleOpButtonPusher extends BasicTeleOp {
                 state = State.DRIVER_CONTROL;
             }
         }
-        telemetry.addData("pushingBeacon", pushingBeacon);
-        telemetry.addData("state", state);
-        telemetry.addData("front sees white: ", seesWhite(front));
-        telemetry.addData("center sees white: ", seesWhite(ods));
     }
 }

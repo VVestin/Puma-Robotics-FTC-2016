@@ -37,10 +37,14 @@ public class BasicTeleOp extends ButtonPusher implements BeaconConstants {
 
     public void loop() {
         if (state == State.DRIVER_CONTROL) {
+            telemetry.addData("left power:", left.getPower());
+            telemetry.addData("right power:", right.getPower());
+//            left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//            right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             telemetry.addData("driver control", true);
-            if (slowDrive) {
-                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) / 5d);
-                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) / 5d);
+            if (slowDrive && (gamepad1.left_stick_y/Math.abs(gamepad1.left_stick_y) == gamepad1.right_stick_y/Math.abs(gamepad1.right_stick_y))) {
+                left.setPower(Math.pow(-gamepad1.left_stick_y, 3) * 0.6);
+                right.setPower(Math.pow(-gamepad1.right_stick_y, 3) * 0.6);
             } else {
                 left.setPower(Math.pow(-gamepad1.left_stick_y, 3));
                 right.setPower(Math.pow(-gamepad1.right_stick_y, 3));
@@ -64,9 +68,9 @@ public class BasicTeleOp extends ButtonPusher implements BeaconConstants {
             }
 
             if (gamepad1.dpad_left) {
-                crservo.setPower(.3);
+                crservo.setPower(CR_POWER);
             } else if (gamepad1.dpad_right) {
-                crservo.setPower(-.3);
+                crservo.setPower(-CR_POWER);
             } else {
                 crservo.setPower(0);
             }
@@ -94,6 +98,8 @@ public class BasicTeleOp extends ButtonPusher implements BeaconConstants {
             }
             telemetry.addData("arm position", arm1.getCurrentPosition());
         } else {
+            left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             super.loop();
         }
     }
