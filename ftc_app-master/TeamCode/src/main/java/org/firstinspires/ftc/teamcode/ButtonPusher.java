@@ -209,30 +209,39 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 break;
             case ROTATE: // TODO uncomment
                 gyro.resetZAxisIntegrator();
-                if (rotateAngle < 0) {
-                    left.setPower(-.25);
-                    right.setPower(.25);
-                } else {
-                    right.setPower(-.25);
-                    left.setPower(.25);
-                }
                 state = State.ROTATE_LOOP;
                 break;
             case ROTATE_LOOP:
-                if (Math.abs(getDirection()) > Math.abs(rotateAngle) + 2) {
-                    // TODO replace magic numbers with constants
-                    if (rotateAngle < 0) {
-                        left.setPower(.15);
-                        right.setPower(-.15);
-                    } else {
-                        right.setPower(.15);
-                        left.setPower(-.15);
-                    }
-                } else if (Math.abs(getDirection()) > Math.abs(rotateAngle) - 1) {
+                telemetry.addData("Angle:", rotateAngle);
+                telemetry.addData("Current Angle:", getDirection());
+                leftPower = (ROTATE_MAX - ROTATE_MIN) * (1 - getDirection() / rotateAngle) + ROTATE_MIN;
+                rightPower = (ROTATE_MAX - ROTATE_MIN) * (1 - getDirection() / rotateAngle) + ROTATE_MIN;
+                if (rotateAngle < 0){
+                    left.setPower(-leftPower);
+                    right.setPower(rightPower);
+                } else {
+                    left.setPower(leftPower);
+                    right.setPower(-rightPower);
+                }
+                if (Math.abs(getDirection()) > Math.abs(rotateAngle) - 1) {
                     left.setPower(0);
                     right.setPower(0);
                     state = nextStates.pop();
                 }
+//                if (Math.abs(getDirection()) > Math.abs(rotateAngle) + 2) {
+//                    // TODO replace magic numbers with constants
+//                    if (rotateAngle < 0) {
+//                        left.setPower(.15);
+//                        right.setPower(-.15);
+//                    } else {
+//                        right.setPower(.15);
+//                        left.setPower(-.15);
+//                    }
+//                } else if (Math.abs(getDirection()) > Math.abs(rotateAngle) - 1) {
+//                    left.setPower(0);
+//                    right.setPower(0);
+//                    state = nextStates.pop();
+//                }
                 break;
             case ALIGN_LINE: // Starts turn until on front LS on white line
                 crossedLine = false;
@@ -301,7 +310,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.DRIVE_TO_BEACON_LOOP;
                 break;
             case DRIVE_TO_BEACON_LOOP: // Completes drive forward
-                if (!seesWhite(front)) {
+                if (!seesGrey(front)) { // !seesWhite(front)
                     state = State.REALIGN;
                 }
                 if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
@@ -320,7 +329,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 break;
             case REALIGN:
                 startRealignTime = time;
-                if (true) { //alignRight) {
+                if (!RED_TEAM) { // Previously if(true) so red and blue = same
                     right.setPower(-ALIGN_POWER);
                     left.setPower(ALIGN_POWER);
                 } else {
@@ -444,6 +453,15 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     public boolean seesWhite(OpticalDistanceSensor light){
         double diff = light.getRawLightDetected() - initLightVal;
         if(diff > ODS_WHITE_THRESHOLD){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public boolean seesGrey(OpticalDistanceSensor light){
+        double diff = light.getRawLightDetected() - initLightVal;
+        if(diff > ODS_WHITE_THRESHOLD - 0.15){
             return true;
         }else{
             return false;

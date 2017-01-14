@@ -19,22 +19,40 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
         telemetry.addData("State:", state);
         switch (state) {
             case AUTONOMOUS_START:
-                nextStates.push(State.HIT_BALL_STOP);
-                nextStates.push(State.HIT_BALL);
-                nextStates.push(State.HIT_BALL_START);
-                nextStates.push(State.PUSH_BEACON_START);
-                nextStates.push(State.DRIVE_DIST);
-                centerServo = true;
-                driveDist = INIT_DRIVE_DISTANCE;
-                alignRight = !RED_TEAM;
-                arm1.setPower(ARM_POWER);
-                arm2.setPower(ARM_POWER);
-                sleepLength = ARM_SLEEP_TIME;
-                state = State.SLEEP;
+                if (BALL_ONLY == true){
+                    driveDist = 54;
+                    nextStates.push(State.HIT_BALL_STOP);
+                    state = State.DRIVE_DIST;
+                } else {
+                    nextStates.push(State.HIT_BALL_STOP);
+                    if (!SECOND_BEACON) {
+                        nextStates.push(State.HIT_BALL);
+                    }
+                    nextStates.push(State.HIT_BALL_START);
+                    nextStates.push(State.PUSH_BEACON_START);
+                    nextStates.push(State.DRIVE_DIST);
+                    centerServo = true;
+                    if (SECOND_BEACON && !FOURTH_SQUARE) {
+                        driveDist = 83;
+                    } else {
+                        driveDist = INIT_DRIVE_DISTANCE;
+                    }
+                    alignRight = !RED_TEAM;
+                    arm1.setPower(ARM_POWER);
+                    arm2.setPower(ARM_POWER);
+                    sleepLength = ARM_SLEEP_TIME;
+                    state = State.SLEEP;
+                }
                 break;
             case HIT_BALL_START:
-                rotateAngle = RED_TEAM?-40:40;
-                driveDist = -36;
+                if (SECOND_BEACON) {
+                    rotateAngle = RED_TEAM?26:-28;
+                    driveDist = RED_TEAM?-65:-60;
+                } else {
+                    rotateAngle = RED_TEAM?-35:35;
+                    driveDist = -36;
+
+                }
                 state = State.ROTATE;
                 nextStates.push(State.DRIVE_DIST);
 //                driveDist = -60;
@@ -43,8 +61,8 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
 //                nextStates.push(State.ROTATE);
                 break;
             case HIT_BALL:
-                rotateAngle = RED_TEAM?80:-80;
-                driveDist = -24;
+                rotateAngle = RED_TEAM?75:-85;
+                driveDist = -36;
                 state = State.ROTATE;
                 nextStates.push(State.DRIVE_DIST);
                 break;
