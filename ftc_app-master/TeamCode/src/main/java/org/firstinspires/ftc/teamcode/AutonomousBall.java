@@ -31,6 +31,7 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                     nextStates.push(State.HIT_BALL_START);
                     nextStates.push(State.PUSH_BEACON_START);
                     nextStates.push(State.DRIVE_DIST);
+                    nextStates.push(State.HIT_BALL_PAUSE);
                     centerServo = true;
                     if (SECOND_BEACON && !FOURTH_SQUARE) {
                         driveDist = 83;
@@ -44,10 +45,16 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                     state = State.SLEEP;
                 }
                 break;
+            case HIT_BALL_PAUSE:
+                arm1.setPower(0);
+                arm1.setPower(0);
+                sleepLength = INIT_SLEEP_TIME;
+                state = State.SLEEP;
+                break;
             case HIT_BALL_START:
                 if (RAMP) {
-                    rotateAngle = RED_TEAM?-110:100;
-                    driveDist = 36;
+                    rotateAngle = RED_TEAM?-90:80;
+                    driveDist = 44;
                 } else if (SECOND_BEACON) {
                     rotateAngle = RED_TEAM?26:-28;
                     driveDist = RED_TEAM?-65:-60;
@@ -65,7 +72,7 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                 break;
             case HIT_BALL:
                 rotateAngle = RED_TEAM?75:-85;
-                driveDist = -36;
+                driveDist = RED_TEAM ? -32 : -36;
                 state = State.ROTATE;
                 nextStates.push(State.DRIVE_DIST);
                 break;
