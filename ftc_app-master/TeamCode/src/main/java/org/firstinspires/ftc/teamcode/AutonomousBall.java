@@ -53,7 +53,7 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                 break;
             case HIT_BALL_START:
                 if (RAMP) {
-                    rotateAngle = RED_TEAM?-90:80;
+                    rotateAngle = RED_TEAM?-80:80;
                     driveDist = 44;
                 } else if (SECOND_BEACON) {
                     rotateAngle = RED_TEAM?26:-28;

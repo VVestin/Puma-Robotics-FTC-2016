@@ -5,11 +5,19 @@ package org.firstinspires.ftc.teamcode;
  */
 
 public interface BeaconConstants {
+    // Alignment problem  - missed line completely
+    // They failed, we did fine
+    // Missed board in middle (turn angle??)
+    // Dropped ball
+    // they stopped in our path, robot fell
+    // FINALS
+    //
+
     public static final boolean RED_TEAM = true;
     public static final boolean BALL_ONLY = false;
-    public static final boolean SECOND_BEACON = true;
+    public static final boolean SECOND_BEACON = false;
     public static final boolean FOURTH_SQUARE = false;
-    public static final boolean RAMP = false;
+    public static final boolean RAMP = true;
     public static final double INIT_SLEEP_TIME = 0.1;
     public static final double START_SERVO_TIME = 3;
     public static final double LINE_FORWARD_POWER = 0.7; // 0.5
