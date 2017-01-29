@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name="AutonomousBall")
+@Autonomous(name="Autonomous")
 
 public class AutonomousBall extends ButtonPusher implements BeaconConstants {
 
@@ -17,6 +17,7 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
 
     public void loop() {
         telemetry.addData("State:", state);
+        telemetry.addData("Color:", avg(cs));
         switch (state) {
             case AUTONOMOUS_START:
                 if (BALL_ONLY == true){
@@ -24,14 +25,15 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                     nextStates.push(State.HIT_BALL_STOP);
                     state = State.DRIVE_DIST;
                 } else {
-                    nextStates.push(State.HIT_BALL_STOP);
-                    if (!SECOND_BEACON && !RAMP) {
-                        nextStates.push(State.HIT_BALL);
-                    }
-                    nextStates.push(State.HIT_BALL_START);
+//                    nextStates.push(State.HIT_BALL_STOP);
+//                    if (!SECOND_BEACON && !RAMP) {
+//                        nextStates.push(State.HIT_BALL);
+//                    }
+//                    nextStates.push(State.HIT_BALL_START);
+                    nextStates.push(State.GO_FOR_TWO);
                     nextStates.push(State.PUSH_BEACON_START);
                     nextStates.push(State.DRIVE_DIST);
-                    nextStates.push(State.HIT_BALL_PAUSE);
+//                    nextStates.push(State.HIT_BALL_PAUSE);
                     centerServo = true;
                     if (SECOND_BEACON && !FOURTH_SQUARE) {
                         driveDist = 83;
@@ -44,6 +46,15 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                     sleepLength = ARM_SLEEP_TIME;
                     state = State.SLEEP;
                 }
+                break;
+            case GO_FOR_TWO:
+//                nextStates.push(State.PUSH_BEACON_START);
+//                nextStates.push(State.DRIVE_DIST);
+//                rotateAngle = RED_TEAM? 84:-75;
+//                driveDist = 30;
+//                state = State.DRIVE_DIST;
+                right.setPower(0);
+                left.setPower(0);
                 break;
             case HIT_BALL_PAUSE:
                 arm1.setPower(0);

@@ -22,7 +22,6 @@ import static java.lang.Integer.parseInt;
 /**
  * Created by ftcuser2 on 10/29/16.
  */
-@Autonomous(name="Autonomous")
 public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
 
     private OpticalDistanceSensor ods;

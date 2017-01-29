@@ -22,7 +22,7 @@ import static java.lang.Integer.parseInt;
  * This OpMode was written for the Vuforia Basics video. This demonstrates basic principles of
  * using Vuforia in FTC.
  */
-@Autonomous(name = "Vuforia")
+
 public class TestVuforiaOp extends LinearOpMode
 {
     // Variables to be used for later

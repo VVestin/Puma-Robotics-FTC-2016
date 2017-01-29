@@ -94,6 +94,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
 
     public void loop() {
         telemetry.addData("State", state);
+        telemetry.addData("Direction: ", getDirection());
         if (centerServo) {
             centerServoStartTime = time;
             crservo.setPower(CR_POWER);
@@ -113,7 +114,6 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 arm2.setPower(0);
             }
         }
-
 
         switch (state) {
             case PUSH_BEACON_START: // Entry point state
@@ -398,19 +398,10 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.SLEEP;
                 break;
             case SCAN_FOR_BUTTON_LOOP:
-                if(avg() <= CS_BLACK_THRESHOLD){
-                    if (true){ //!RED_TEAM) {
-                        sleepLength = 0.1;
-                        nextStates.push(State.SCAN_FOR_BUTTON_STOP);
-                        state = State.SLEEP;
-                    } else {
-                        state = State.SCAN_FOR_BUTTON_STOP;
-                    }
+                if(avg() <= CS_BLACK_THRESHOLD) {
+                    crservo.setPower(0);
+                    state = nextStates.pop();
                 }
-                break;
-            case SCAN_FOR_BUTTON_STOP:
-                crservo.setPower(0);
-                state = nextStates.pop();
                 break;
             case PUSH_BUTTON:
                 right.setPower(PUSH_BUTTON_POWER);
@@ -428,18 +419,22 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case BACK_UP:
                 crservo.setPower(wentLeft ? -CR_POWER : CR_POWER);
                 sleepLength = CR_CENTER_TIME/1000d;
-                right.setPower(-LINE_SLOW_POWER);
-                left.setPower(-LINE_SLOW_POWER);
+                right.setPower(-(LINE_SLOW_POWER + .1));
+                left.setPower(-(LINE_SLOW_POWER + .1));
                 resetEncoders();
                 nextStates.push(State.BACK_UP_LOOP);
                 state = State.SLEEP;
+                gyro.resetZAxisIntegrator();
                 break;
             case BACK_UP_LOOP:
                 // TODO Back up and turn 90 degrees to save time
                 crservo.setPower(0);
-                right.setPower(-LINE_SLOW_POWER);
-                left.setPower(-LINE_SLOW_POWER);
-                if (Math.max(left.getCurrentPosition(), right.getCurrentPosition()) < -DRIVE_BACK * TICKS_PER_INCH){
+                if (RED_TEAM) {
+                    left.setPower(0);
+                } else {
+                    right.setPower(0);
+                }
+                if (Math.abs(getDirection()) > 90) {
                     right.setPower(0);
                     left.setPower(0);
                     state = nextStates.pop();

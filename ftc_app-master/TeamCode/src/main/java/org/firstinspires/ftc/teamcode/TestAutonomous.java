@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * Created by ftcuser1 on 10/1/16.
  */
 
-@Autonomous(name="AutonomousTest")
 public class TestAutonomous extends AutoDriveOp {
 
     public void runOpMode() throws InterruptedException {
