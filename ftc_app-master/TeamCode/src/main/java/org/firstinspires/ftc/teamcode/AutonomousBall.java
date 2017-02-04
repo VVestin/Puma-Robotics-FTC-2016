@@ -48,11 +48,11 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                 }
                 break;
             case GO_FOR_TWO:
-//                nextStates.push(State.PUSH_BEACON_START);
+                nextStates.push(State.PUSH_BEACON_START);
 //                nextStates.push(State.DRIVE_DIST);
 //                rotateAngle = RED_TEAM? 84:-75;
-//                driveDist = 30;
-//                state = State.DRIVE_DIST;
+                driveDist = 30;
+                state = State.DRIVE_DIST;
                 right.setPower(0);
                 left.setPower(0);
                 break;

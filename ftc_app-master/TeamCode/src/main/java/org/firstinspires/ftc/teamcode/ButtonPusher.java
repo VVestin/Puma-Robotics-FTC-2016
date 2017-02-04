@@ -52,6 +52,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     protected Servo forkDrop;
     protected boolean centerServoMoving;
     private double centerServoStartTime;
+    protected boolean recenterServo;
+    protected boolean recenterServoMoving;
+    private double recenterServoStartTime;
     protected DcMotor arm1;
     protected DcMotor arm2;
     protected int armPos;
@@ -100,10 +103,23 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             crservo.setPower(CR_POWER);
             centerServo = false;
             centerServoMoving = true;
+            telemetry.addData("centeringServo", true);
         }
         if (time - centerServoStartTime > START_SERVO_TIME && centerServoMoving) {
             crservo.setPower(0);
             centerServoMoving = false;
+        }
+
+        if (recenterServo) {
+            recenterServoStartTime = time;
+            crservo.setPower(wentLeft ? -CR_POWER : CR_POWER);
+            recenterServo = false;
+            recenterServoMoving = true;
+            telemetry.addData("recenteringServo", true);
+        }
+        if (time - recenterServoStartTime > CR_CENTER_TIME && recenterServoMoving) {
+            crservo.setPower(0);
+            recenterServoMoving = false;
         }
         if (arm1.getPower() != 1) {
             if (arm1.getCurrentPosition() < armPos) {
@@ -310,16 +326,16 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.DRIVE_TO_BEACON_LOOP;
                 break;
             case DRIVE_TO_BEACON_LOOP: // Completes drive forward
-                if (!seesGrey(front)) { // !seesWhite(front)
+                if (!seesWhite(front)) { // !seesgrey(front)
                     state = State.REALIGN;
                 }
                 if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
-                    left.setPower(0);
-                    right.setPower(0);
-                    //sleepLength = .1;
-                    //nextStates.push(State.DRIVE_TO_BEACON_STOP);
-                    //state = State.SLEEP;
-                    state = nextStates.pop();
+//                    left.setPower(0);
+//                    right.setPower(0);
+                    sleepLength = .2;
+                    nextStates.push(State.DRIVE_TO_BEACON_STOP);
+                    state = State.SLEEP;
+//                    state = nextStates.pop();
                 }
                 break;
             case DRIVE_TO_BEACON_STOP: // Stops the motors after sleep
@@ -417,24 +433,22 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = nextStates.pop();
                 break;
             case BACK_UP:
-                crservo.setPower(wentLeft ? -CR_POWER : CR_POWER);
-                sleepLength = CR_CENTER_TIME/1000d;
-                right.setPower(-(LINE_SLOW_POWER + .1));
-                left.setPower(-(LINE_SLOW_POWER + .1));
+                sleepLength = .9;
+                right.setPower(-(LINE_SLOW_POWER));
+                left.setPower(-(LINE_SLOW_POWER));
+                recenterServo = true;
                 resetEncoders();
                 nextStates.push(State.BACK_UP_LOOP);
                 state = State.SLEEP;
                 gyro.resetZAxisIntegrator();
                 break;
             case BACK_UP_LOOP:
-                // TODO Back up and turn 90 degrees to save time
-                crservo.setPower(0);
                 if (RED_TEAM) {
                     left.setPower(0);
                 } else {
                     right.setPower(0);
                 }
-                if (Math.abs(getDirection()) > 90) {
+                if (Math.abs(getDirection()) > 80) {
                     right.setPower(0);
                     left.setPower(0);
                     state = nextStates.pop();
