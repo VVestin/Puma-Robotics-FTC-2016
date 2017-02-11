@@ -22,5 +22,6 @@ public enum State {
         BACK_UP, BACK_UP_LOOP,
         MOTOR_STUCK,
         ROTATE, ROTATE_LOOP,
-        FAR_BEACON_ADJ;
+        FAR_BEACON_ADJ,
+        LEFT_TEST, RIGHT_TEST;
 }

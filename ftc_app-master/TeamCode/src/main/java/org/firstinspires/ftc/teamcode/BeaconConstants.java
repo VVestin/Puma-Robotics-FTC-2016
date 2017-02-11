@@ -13,7 +13,7 @@ public interface BeaconConstants {
     // FINALS
     //
 
-    public static final boolean RED_TEAM = true;
+    public static final boolean RED_TEAM = false;
     public static final boolean BALL_ONLY = false;
     public static final boolean SECOND_BEACON = false;
     public static final boolean FOURTH_SQUARE = false;
@@ -26,7 +26,8 @@ public interface BeaconConstants {
     public static final double ROTATE_MAX =  0.3;
     public static final double ROTATE_MIN = 0.1;
     public static final double ALIGN_POWER = 0.16; // 0.15
-    public static final double ODS_WHITE_THRESHOLD = 0.6;
+    public static final double ODS_WHITE_THRESHOLD = 1; //front reads white as 2, ods reads it as 1
+    public static final double ODS_GREY_THRESHOLD = 0.5;
     public static final double FRONT_WHITE_THRESHOLD = 10;
     public static final double CR_POWER = 0.3;
     public static final double SECOND_BEACON_DISTANCE = 30;
@@ -40,7 +41,7 @@ public interface BeaconConstants {
     public static final double PUSH_BEACON_TIME = 1.8; // 1.5
     public static final double ARM_POWER = 1.0;
     public static final double ARM_SLOW_POWER = 0.25;
-    public static final double ARM_SLEEP_TIME = 0.1; // 0.3 stresses the servo out @ end
+    public static final double ARM_SLEEP_TIME = 0.0; // 0.3 stresses the servo out @ end
     // TODO increase this and test
     public static final double ALIGN_ROTATE_CORRECTION = 6;
     public static final double DRIVE_BACK = 9;

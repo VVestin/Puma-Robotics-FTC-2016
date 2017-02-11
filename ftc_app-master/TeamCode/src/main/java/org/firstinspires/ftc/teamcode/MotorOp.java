@@ -17,7 +17,7 @@ public class MotorOp extends OpMode {
     }
 
     public void loop(){
-        motor.setPower(.2
-        );
+        motor.setPower(.2);
+
     }
 }

@@ -25,6 +25,8 @@ public class TeleOpButtonPusher extends BasicTeleOp {
 //   }
 
     public void loop() {
+        telemetry.addData("Front: ", front.getRawLightDetected());
+        telemetry.addData("ODS: ", ods.getRawLightDetected());
         if (state == State.DRIVER_CONTROL) {
             if (!pushingBeacon) {
                 super.loop();

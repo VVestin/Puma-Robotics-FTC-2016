@@ -36,6 +36,15 @@ public class BasicTeleOp extends ButtonPusher implements BeaconConstants {
     }
 
     public void loop() {
+        telemetry.addData("Front Light: ", maxLightReading);
+        if (gamepad1.dpad_left) {
+            state = State.LEFT_TEST;
+            maxLightReading = 0;
+        } else if (gamepad1.dpad_right) {
+            state = State.RIGHT_TEST;
+            maxLightReading = 0;
+        }
+
         if (state == State.DRIVER_CONTROL) {
             telemetry.addData("left power:", left.getPower());
             telemetry.addData("right power:", right.getPower());

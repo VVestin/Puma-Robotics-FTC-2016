@@ -55,6 +55,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     protected DcMotor arm1;
     protected DcMotor arm2;
     protected int armPos;
+    protected double maxLightReading;
 
     //Vuforia stuff
     private VuforiaLocalizer vuforiaLocalizer;
@@ -176,7 +177,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.FIND_LINE_LOOP;
                 break;
             case FIND_LINE_LOOP: // Stops driving once line
-                if (seesWhite(ods)){
+                if (ods.getRawLightDetected() > ODS_WHITE_THRESHOLD - 0.15){
                     if (seesWhite(front)) {
                         left.setPower(0);
                         right.setPower(0);
@@ -192,7 +193,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case ROTATE_OFF:
                 left.setPower(-LINE_SLOW_POWER);
                 right.setPower(-LINE_SLOW_POWER);
-                if (seesWhite(ods)){
+                if (ods.getRawLightDetected() > ODS_WHITE_THRESHOLD - 0.15){
                     nextStates.push(State.ROTATE_OFF_LOOP);
                     sleepLength = 0.2;
                     state = State.SLEEP;
@@ -310,7 +311,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.DRIVE_TO_BEACON_LOOP;
                 break;
             case DRIVE_TO_BEACON_LOOP: // Completes drive forward
-                if (!seesGrey(front)) { // !seesWhite(front)
+                if (seesGrey(front)) { // !seesWhite(front)
                     state = State.REALIGN;
                 }
                 if (avg(cs) >= BEACON_FOUND_THRESHOLD) {
@@ -330,11 +331,11 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case REALIGN:
                 startRealignTime = time;
                 if (!RED_TEAM) { // Previously if(true) so red and blue = same
-                    right.setPower(-ALIGN_POWER);
+//                    right.setPower(-ALIGN_POWER);
                     left.setPower(ALIGN_POWER);
                 } else {
                     right.setPower(ALIGN_POWER);
-                    left.setPower(-ALIGN_POWER);
+//                    left.setPower(-ALIGN_POWER);
                 }
                 state = State.REALIGN_LOOP;
                 break;
@@ -346,9 +347,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 } else if(time - startRealignTime > REALIGN_TIME_THRESHOLD){
                     if(true) { //alignRight){
                         right.setPower(ALIGN_POWER);
-                        left.setPower(-ALIGN_POWER);
+//                      left.setPower(-ALIGN_POWER);
                     } else {
-                        right.setPower(-ALIGN_POWER);
+//                      right.setPower(-ALIGN_POWER);
                         left.setPower(ALIGN_POWER);
                     }
                     startRealignTime = time + REALIGN_TIME_THRESHOLD;
@@ -448,6 +449,22 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case MOTOR_STUCK:
                 telemetry.addData("STUCK!", true);
                 break;
+            case LEFT_TEST:
+                if(front.getRawLightDetected() > 1) {
+                    maxLightReading = front.getRawLightDetected();
+                    state = State.DRIVER_CONTROL;
+                }
+     //           left.setPower(-ALIGN_POWER);
+                right.setPower(ALIGN_POWER);
+                break;
+            case RIGHT_TEST:
+                if(front.getRawLightDetected() > 1) {
+                    maxLightReading = front.getRawLightDetected();
+                    state = State.DRIVER_CONTROL;
+                }
+                left.setPower(ALIGN_POWER);
+     //           right.setPower(-ALIGN_POWER);
+                break;
         }
 
     }
@@ -463,7 +480,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
 
     public boolean seesGrey(OpticalDistanceSensor light){
         double diff = light.getRawLightDetected() - initLightVal;
-        if(diff > ODS_WHITE_THRESHOLD - 0.15){
+        if(diff < ODS_GREY_THRESHOLD){
             return true;
         }else{
             return false;
