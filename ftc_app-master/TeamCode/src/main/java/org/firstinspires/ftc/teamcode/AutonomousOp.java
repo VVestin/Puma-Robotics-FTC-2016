@@ -170,14 +170,14 @@ public class AutonomousOp extends AutoDriveOp implements BeaconConstants{
             sleep(1000);
 
             // Back up!
-            right.setPower(-PUSH_BUTTON_POWER);
-            left.setPower(-PUSH_BUTTON_POWER);
-            crservo.setPower(crPower);
-            sleep(CR_CENTER_TIME);
-            crservo.setPower(0);
-            sleep(3000-CR_CENTER_TIME);
-            right.setPower(0);
-            left.setPower(0);
+//            right.setPower(-PUSH_BUTTON_POWER);
+//            left.setPower(-PUSH_BUTTON_POWER);
+//            crservo.setPower(crPower);
+//            sleep(CR_CENTER_TIME);
+//            crservo.setPower(0);
+//            sleep(3000-CR_CENTER_TIME);
+//            right.setPower(0);
+//            left.setPower(0);
 
             if(i == 0){
                 rotate(RED_TEAM?SECOND_TURN_ANGLE:-SECOND_TURN_ANGLE);

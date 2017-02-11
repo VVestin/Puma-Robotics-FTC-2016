@@ -12,7 +12,7 @@ public interface BeaconConstants {
     public static final boolean RAMP = false;
     public static final double INIT_SLEEP_TIME = 0.1;
     public static final double START_SERVO_TIME = 3;
-    public static final double LINE_FORWARD_POWER = 0.9; // 0.5
+    public static final double LINE_FORWARD_POWER = 0.9; // Drive Power
     public static final double INIT_DRIVE_DISTANCE = 53;
     public static final double LINE_SLOW_POWER = 0.17; // 0.1
     public static final double ROTATE_MAX =  0.3;

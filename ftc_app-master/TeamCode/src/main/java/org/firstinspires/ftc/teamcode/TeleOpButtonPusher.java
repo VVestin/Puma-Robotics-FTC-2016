@@ -25,6 +25,8 @@ public class TeleOpButtonPusher extends BasicTeleOp {
 //   }
 
     public void loop() {
+        telemetry.addData("encoder right: ", right.getCurrentPosition());
+        telemetry.addData("encoder left: ", left.getCurrentPosition());
         if (state == State.DRIVER_CONTROL) {
             if (!pushingBeacon) {
                 super.loop();
