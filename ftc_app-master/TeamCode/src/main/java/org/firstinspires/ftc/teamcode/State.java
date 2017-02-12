@@ -7,8 +7,8 @@ package org.firstinspires.ftc.teamcode;
 public enum State {
         PUSH_BEACON_START,		// START state for pushing beacon button. (Does everything from find white line to push button).
         DRIVE_DIST, DRIVE_DIST_LOOP,
-        FIND_LINE, FIND_LINE_LOOP, FIND_LINE_SLEEP_STOP,
-        ALIGN_LINE, ALIGN_LINE_LOOP, VUFORIA_ALIGN,
+        FIND_LINE, FIND_LINE_LOOP, FIND_LINE_FIX,
+        ALIGN_LINE, ALIGN_FRONT_FIX, ALIGN_LINE_LOOP, VUFORIA_ALIGN,
         ROTATE_OFF,  ROTATE_OFF_BEGIN, ROTATE_OFF_LOOP, ROTATE_OFF_STOP,
         SLEEP, SLEEP_LOOP,
         DRIVE_TO_BEACON, DRIVE_TO_BEACON_LOOP, DRIVE_TO_BEACON_STOP,
@@ -23,5 +23,6 @@ public enum State {
         BACK_UP, BACK_UP_LOOP,
         MOTOR_STUCK,
         ROTATE, ROTATE_LOOP,
-        FAR_BEACON_ADJ;
+        FAR_BEACON_ADJ,
+        LEFT_TEST, RIGHT_TEST;
 }

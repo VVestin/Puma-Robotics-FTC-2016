@@ -30,6 +30,7 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
 //                        nextStates.push(State.HIT_BALL);
 //                    }
 //                    nextStates.push(State.HIT_BALL_START);
+                    nextStates.push(State.HIT_BALL_STOP);
                     nextStates.push(State.GO_FOR_TWO);
                     nextStates.push(State.PUSH_BEACON_START);
                     nextStates.push(State.DRIVE_DIST);
@@ -41,8 +42,8 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                         driveDist = INIT_DRIVE_DISTANCE;
                     }
                     alignRight = !RED_TEAM;
-                    arm1.setPower(ARM_POWER);
-                    arm2.setPower(ARM_POWER);
+//                    arm1.setPower(ARM_POWER);
+//                    arm2.setPower(ARM_POWER);
                     sleepLength = ARM_SLEEP_TIME;
                     state = State.SLEEP;
                 }
