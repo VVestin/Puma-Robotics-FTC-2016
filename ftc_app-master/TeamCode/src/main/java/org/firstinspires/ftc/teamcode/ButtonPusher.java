@@ -172,7 +172,8 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                     lastCheckTime = time;
                 }
                 int currentPos = (left.getCurrentPosition() + right.getCurrentPosition()) / 2;
-                double power = (LINE_FORWARD_POWER - LINE_SLOW_POWER) * (1 - currentPos / (driveDist * TICKS_PER_INCH)) + LINE_SLOW_POWER;
+                double power = (LINE_FORWARD_POWER - LINE_MEDIUM_POWER) * (1 - currentPos / (driveDist * TICKS_PER_INCH)) + LINE_MEDIUM_POWER;
+//                double power = LINE_FORWARD_POWER;
                 if (driveDist < 0){
                     left.setPower(-power);
                     right.setPower(-power);
@@ -189,11 +190,21 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 }
                 break;
             case FIND_LINE: // Drives forward until line
-                left.setPower(LINE_SLOW_POWER);
-                right.setPower(LINE_SLOW_POWER);
+                maxLightReading = 0;
+                left.setPower(LINE_MEDIUM_POWER);
+                right.setPower(LINE_MEDIUM_POWER);
                 state = State.FIND_LINE_LOOP;
                 break;
             case FIND_LINE_LOOP: // Stops driving once line
+                if (front.getRawLightDetected() > 1.0) {
+                    telemetry.addData("Slow:", true);
+                    left.setPower(LINE_SLOW_POWER);
+                    right.setPower(LINE_SLOW_POWER);
+                }
+                if (front.getRawLightDetected() > maxLightReading) {
+                    maxLightReading = front.getRawLightDetected();
+                    telemetry.addData("Light Val: ", maxLightReading);
+                }
                 if (ods.getRawLightDetected() > ODS_WHITE_THRESHOLD - 0.5) {
 //                    if (seesWhite(front)) {
 //                        left.setPower(0);
@@ -204,7 +215,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
 //                    else {
                         left.setPower(-LINE_SLOW_POWER);
                         right.setPower(-LINE_SLOW_POWER);
-                        sleepLength = .9;
+                        sleepLength = .3;
                         state = State.SLEEP;
                         nextStates.push(State.FIND_LINE_FIX);
                         fixStartTime = time;
@@ -324,7 +335,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         right.setPower(ALIGN_POWER);
                         left.setPower(-ALIGN_POWER);
                     }
-                }else if (front.getRawLightDetected() < .7) {
+                }else if (front.getRawLightDetected() < .56) {
                     fixStartTime = 0;
                     if(alignRight){
                         right.setPower(ALIGN_POWER);
@@ -341,7 +352,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
 //                    sleepLength = .1;
 //                    state = State.SLEEP;
                 }
-                if (fixStartTime != 0 && time - fixStartTime > 0.5) {
+                if (fixStartTime != 0 && time - fixStartTime > 0.25) {
                     sleepLength = 0.1;
                     state = State.SLEEP;
                 }
@@ -461,7 +472,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.SLEEP;
                 break;
             case SCAN_BEACON_START:
-                crservo.setPower(CR_POWER);
+                crservo.setPower(CR_FAST_POWER);
                 sleepLength = 0.2;
                 nextStates.push(State.SCAN_BEACON_LOOP);
                 state = State.SLEEP;
@@ -469,7 +480,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             case SCAN_BEACON_LOOP:
                 if(!(Math.abs(cs.red() - cs.blue()) <= 1 && !(cs.red() > 0 && cs.blue() == 0))){
                     if(cs.red() > cs.blue() != RED_TEAM && wentLeft){
-                        crservo.setPower(-CR_POWER);
+                        crservo.setPower(-CR_FAST_POWER);
 //                        crRecenterTime = 2 * time - crRecenterTime;
                         nextStates.push(State.SCAN_BEACON_LOOP);
                         sleepLength = .6;
@@ -488,7 +499,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 break;
             case SCAN_FOR_BUTTON:
                 cs.enableLed(true);
-                crservo.setPower(wentLeft?1:-1*(CR_POWER/3.));
+                crservo.setPower(wentLeft?1:-1*(CR_FAST_POWER/3.));
                 sleepLength = .3;
                 nextStates.push(State.SCAN_FOR_BUTTON_LOOP);
                 state = State.SLEEP;
@@ -515,10 +526,10 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 state = State.SLEEP;
                 break;
             case BACK_UP:
-                sleepLength = .9;
+                sleepLength = .5;
                 crservo.setPower(0);
-                right.setPower(-(LINE_SLOW_POWER));
-                left.setPower(-(LINE_SLOW_POWER));
+                right.setPower(-(LINE_MEDIUM_POWER));
+                left.setPower(-(LINE_MEDIUM_POWER));
                 recenterServo = true;
                 resetEncoders();
                 nextStates.push(State.BACK_UP_LOOP);
@@ -531,7 +542,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 } else {
                     right.setPower(0);
                 }
-                if (Math.abs(getDirection()) > 79) {
+                if (Math.abs(getDirection()) > 68) {
                     right.setPower(0);
                     left.setPower(0);
                     state = nextStates.pop();
