@@ -86,15 +86,15 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
             crservo.setPower(0);
             recenterServoMoving = false;
         }
-        if (arm1.getPower() != 1) {
-            if (arm1.getCurrentPosition() < armPos) {
-                arm1.setPower(ARM_SLOW_POWER);
-                arm2.setPower(ARM_SLOW_POWER);
-            } else {
-                arm1.setPower(0);
-                arm2.setPower(0);
-            }
-        }
+//        if (arm1.getPower() != 1) {
+//            if (arm1.getCurrentPosition() < armPos) {
+//                arm1.setPower(ARM_SLOW_POWER);
+//                arm2.setPower(ARM_SLOW_POWER);
+//            } else {
+//                arm1.setPower(0);
+//                arm2.setPower(0);
+//            }
+//        }
 
         switch (state) {
             case PUSH_BEACON_START: // Entry point state
@@ -173,9 +173,9 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
 //                        state = State.SLEEP;
 //                    }
 //                    else {
-                        left.setPower(-LINE_SLOW_POWER);
-                        right.setPower(-LINE_SLOW_POWER);
-                        sleepLength = .6;
+                        left.setPower(-0.25);
+                        right.setPower(-0.25);
+                        sleepLength = (RED_TEAM? 0.7: 0.7);
                         state = State.SLEEP;
                         nextStates.push(State.FIND_LINE_FIX);
                         fixStartTime = time;
@@ -183,7 +183,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 }
                 break;
             case FIND_LINE_FIX:
-                if(ods.getRawLightDetected() > .7){
+                if(ods.getRawLightDetected() > (RED_TEAM? 0.7:0.9)){
                     fixStartTime = 0;
                     right.setPower(-LINE_SLOW_POWER);
                     left.setPower(-LINE_SLOW_POWER);
@@ -199,7 +199,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
 //                    sleepLength = .1;
 //                    state = State.SLEEP;
                 }
-                if (fixStartTime != 0 && time - fixStartTime > 0.5) {
+                if (fixStartTime != 0 && time - fixStartTime > (RED_TEAM? 0.3:0.5)) {
                     sleepLength = 0.1;
                     state = State.SLEEP;
                 }
@@ -471,7 +471,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 } else {
                     right.setPower(0);
                 }
-                if (Math.abs(getDirection()) > (RED_TEAM?83:68)) {
+                if (Math.abs(getDirection()) > (RED_TEAM?82:75)) {
                     right.setPower(0);
                     left.setPower(0);
                     state = nextStates.pop();

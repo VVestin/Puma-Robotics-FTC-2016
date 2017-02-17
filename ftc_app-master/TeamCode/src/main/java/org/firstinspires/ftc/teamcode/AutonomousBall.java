@@ -31,7 +31,7 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                 break;
             case GO_FOR_TWO:
                 nextStates.push(State.PUSH_BEACON_START);
-                driveDist = RAMP ? -30 : 30;
+                driveDist = RAMP ? -30 : 20;
                 state = State.DRIVE_DIST;
                 right.setPower(0);
                 left.setPower(0);
