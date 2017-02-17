@@ -34,6 +34,7 @@ public class AutonomousBall extends ButtonPusher implements BeaconConstants {
                     nextStates.push(State.GO_FOR_TWO);
                     nextStates.push(State.PUSH_BEACON_START);
                     nextStates.push(State.DRIVE_DIST);
+
 //                    nextStates.push(State.HIT_BALL_PAUSE);
                     centerServo = true;
                     if (SECOND_BEACON && !FOURTH_SQUARE) {

@@ -29,6 +29,9 @@ public class ServoTestOp extends OpMode {
             s.setPower(power);
             start = System.currentTimeMillis();
 
+        } if (gamepad1.x) {
+            s.setPower(-power);
+            start = System.currentTimeMillis();
         } else if(gamepad1.b && !hiSara){
             s.setPower(0);
             hiSara = true;
