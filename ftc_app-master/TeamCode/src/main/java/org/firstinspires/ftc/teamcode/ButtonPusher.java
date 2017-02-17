@@ -61,6 +61,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
     protected double maxLightReading;
     protected double crRecenterTime;
     protected double crCenterTime;
+    protected double fixStartTime;
 
     //Vuforia stuff
     private VuforiaLocalizer vuforiaLocalizer;
@@ -206,25 +207,31 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         sleepLength = .9;
                         state = State.SLEEP;
                         nextStates.push(State.FIND_LINE_FIX);
+                        fixStartTime = time;
 //                    }
                 }
                 break;
             case FIND_LINE_FIX:
                 if(ods.getRawLightDetected() > .7){
+                    fixStartTime = 0;
                     right.setPower(-LINE_SLOW_POWER);
                     left.setPower(-LINE_SLOW_POWER);
                 }else if (ods.getRawLightDetected() < .3) {
                     right.setPower(LINE_SLOW_POWER);
                     left.setPower(LINE_SLOW_POWER);
-
+                    fixStartTime = 0;
                 }else{
                     right.setPower(0);
                     left.setPower(0);
-                    telemetry.addData("food: ", "what the FUCK");
-                    sleepLength = .1;
+                    if (fixStartTime == 0)
+                        fixStartTime = time;
+//                    sleepLength = .1;
+//                    state = State.SLEEP;
+                }
+                if (fixStartTime != 0 && time - fixStartTime > 0.5) {
+                    sleepLength = 0.1;
                     state = State.SLEEP;
                 }
-
                 break;
             case ROTATE_OFF:
                 left.setPower(-LINE_SLOW_POWER);
@@ -299,6 +306,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         right.setPower(ALIGN_POWER);
                         left.setPower(-ALIGN_POWER);
                     }
+                    fixStartTime = 0;
                     state = State.ALIGN_FRONT_FIX;
 //                    left.setPower(0);
 //                    right.setPower(0);
@@ -308,6 +316,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 break;
             case ALIGN_FRONT_FIX:
                 if(front.getRawLightDetected() > 1.0){
+                    fixStartTime = 0;
                     if(alignRight){
                         right.setPower(-ALIGN_POWER);
                         left.setPower(ALIGN_POWER);
@@ -315,7 +324,8 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                         right.setPower(ALIGN_POWER);
                         left.setPower(-ALIGN_POWER);
                     }
-                }else if (front.getRawLightDetected() < .6) {
+                }else if (front.getRawLightDetected() < .7) {
+                    fixStartTime = 0;
                     if(alignRight){
                         right.setPower(ALIGN_POWER);
                         left.setPower(-ALIGN_POWER);
@@ -326,8 +336,13 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 }else{
                     right.setPower(0);
                     left.setPower(0);
-                    telemetry.addData("food: ", "what the FUCK");
-                    sleepLength = .1;
+                    if (fixStartTime == 0)
+                        fixStartTime = time;
+//                    sleepLength = .1;
+//                    state = State.SLEEP;
+                }
+                if (fixStartTime != 0 && time - fixStartTime > 0.5) {
+                    sleepLength = 0.1;
                     state = State.SLEEP;
                 }
                 break;
