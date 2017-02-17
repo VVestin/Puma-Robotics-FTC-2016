@@ -5,21 +5,17 @@ package org.firstinspires.ftc.teamcode;
  */
 
 public interface BeaconConstants {
-    public static final boolean RED_TEAM = false;
-    public static final boolean BALL_ONLY = false;
-    public static final boolean SECOND_BEACON = false;
-    public static final boolean FOURTH_SQUARE = false;
+    public static final boolean RED_TEAM = true;
     public static final boolean RAMP = false;
-    public static final double INIT_SLEEP_TIME = 0.1;
+
     public static final double START_SERVO_TIME = 3.4; // Servo to center off block
     public static final double LINE_FORWARD_POWER = 1; // Drive Power
     public static final double LINE_MEDIUM_POWER = 0.3;
-    public static final double LINE_SLOW_POWER = 0.15; // 0.17
+    public static final double LINE_SLOW_POWER = 0.11; // 0.15
     public static final double INIT_DRIVE_DISTANCE = 30; // 50;
     public static final double ROTATE_MAX =  0.3;
     public static final double ROTATE_MIN = 0.1;
     public static final double ALIGN_POWER = 0.2; // 0.15
-    public static final double REALIGN_POWER = 0.13;
     public static final double ODS_WHITE_THRESHOLD = 1; // .6
     public static final double ODS_GREY_THRESHOLD = 0.5;
     public static final double FRONT_WHITE_THRESHOLD = 10; // Used in Autonomous Op, not relevant
@@ -37,9 +33,5 @@ public interface BeaconConstants {
     public static final double ARM_POWER = 1.0;
     public static final double ARM_SLOW_POWER = 0.25;
     public static final double ARM_SLEEP_TIME = 0.0;
-    // TODO increase this and test
-    public static final double ALIGN_ROTATE_CORRECTION = 6;
-    public static final double DRIVE_BACK = 9;
-    // This is a coment to test version control.
 
 }

@@ -17,7 +17,7 @@ import java.util.ArrayList;
  * Created by Sara Branham on 9/30/16.
  */
 
-@Autonomous(name="BeaconScanner", group="SensorTest")
+@TeleOp(name="BeaconScanner", group="SensorTest")
 
 public class BeaconScanner extends LinearOpMode {
 

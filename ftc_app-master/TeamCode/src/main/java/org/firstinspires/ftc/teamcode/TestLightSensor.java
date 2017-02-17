@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
  * Created by sarabranham on 10/29/16.
  */
 @Autonomous(name = "TestLightSensor", group = "SensorTest")
-
 public class TestLightSensor extends OpMode {
     private OpticalDistanceSensor ls;
     private OpticalDistanceSensor cs;

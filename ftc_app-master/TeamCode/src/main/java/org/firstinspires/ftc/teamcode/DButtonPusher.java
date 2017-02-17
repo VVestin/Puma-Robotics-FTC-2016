@@ -24,7 +24,6 @@ import static android.graphics.PathDashPathEffect.Style.ROTATE;
 import static java.lang.Integer.parseInt;
 import static java.lang.Thread.sleep;
 
-@TeleOp(name="ButtonPusher")
 public class DButtonPusher extends DriveOp implements BeaconConstants {
 	protected OpticalDistanceSensor ods;
     protected ColorSensor cs;

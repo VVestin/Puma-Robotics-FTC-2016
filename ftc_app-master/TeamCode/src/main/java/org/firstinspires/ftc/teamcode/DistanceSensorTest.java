@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
  * Created by ftcuser2 on 11/5/16.
  */
 
-@Autonomous(name = "DistanceSensorTest", group = "SensorTest")
 public class DistanceSensorTest extends OpMode {
     byte[] range1Cache; // The read will return an array of bytes. They are stored in this variable
 

@@ -18,7 +18,6 @@ import java.util.ArrayList;
  */
 
 @Autonomous(name="ColorSensor", group="SensorTest")
-
 public class ColorSensorOp extends OpMode {
 
     private ColorSensor cs;

@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
  * Created by Me on 9/24/16.
  */
 
-@Autonomous(name="MotorOp", group="MotorTest")
 public class MotorOp extends OpMode {
     private DcMotor motor;
 

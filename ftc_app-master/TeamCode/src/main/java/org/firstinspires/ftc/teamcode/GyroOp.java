@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
  * Created by ftcuser1 on 10/1/16.
  */
 
-@Autonomous(name="GyroOp", group="SensorTest")
 public class GyroOp extends OpMode {
 
     private GyroSensor gyro;

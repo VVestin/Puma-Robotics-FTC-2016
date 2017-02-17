@@ -11,7 +11,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  * Created by sarabranham on 12/10/16.
  */
 
-@TeleOp(name="TestAll")
 public class TestAll extends ButtonPusher{
     private DcMotor arm1;
     private DcMotor arm2;

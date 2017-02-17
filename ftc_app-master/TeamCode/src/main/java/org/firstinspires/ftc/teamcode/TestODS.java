@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
  * Created by ftcuser2 on 11/5/16.
  */
 
-@Autonomous(name = "ODSTest", group = "SensorTest")
 public class TestODS extends OpMode {
 
     private OpticalDistanceSensor ods;

@@ -83,10 +83,16 @@ public class BasicTeleOp extends ButtonPusher implements BeaconConstants {
                 crservo.setPower(0);
             }
 
-            if (gamepad1.right_bumper) {
-                backwards = true;
-            } else if (gamepad1.left_bumper) {
-                backwards = false;
+//            if (gamepad1.right_bumper) {
+//                backwards = true;
+//            } else if (gamepad1.left_bumper) {
+//                backwards = false;
+//            } uncomment later
+
+            if(gamepad1.right_bumper){
+                shooter.setPosition(1);
+            }else if(gamepad1.left_bumper){
+                shooter.setPosition(0);
             }
 
             if (!stopArm) {

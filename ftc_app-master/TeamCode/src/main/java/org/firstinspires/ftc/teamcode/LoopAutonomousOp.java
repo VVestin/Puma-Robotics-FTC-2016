@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name="TwoBeacons")
-
 public class LoopAutonomousOp extends ButtonPusher implements BeaconConstants {
 
 	public void init() {
