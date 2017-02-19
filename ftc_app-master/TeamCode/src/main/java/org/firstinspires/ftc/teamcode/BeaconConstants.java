@@ -5,10 +5,9 @@ package org.firstinspires.ftc.teamcode;
  */
 
 public interface BeaconConstants {
-    public static final boolean RED_TEAM = false;
-    public static final boolean RAMP = true;
-
-    public static final double START_SERVO_TIME = 3.4; // Servo to center off block
+    public static final boolean RED_TEAM = true;
+    public static final boolean RAMP = false;
+    public static final double START_SERVO_TIME = 3.5; // Servo to center off block
     public static final double LINE_FORWARD_POWER = 1; // Drive Power
     public static final double LINE_MEDIUM_POWER = 0.3;
     public static final double LINE_SLOW_POWER = 0.13; // 0.15

@@ -183,7 +183,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 }
                 break;
             case FIND_LINE_FIX:
-                if(ods.getRawLightDetected() > (RED_TEAM? 0.7:0.9)){
+                if(ods.getRawLightDetected() > (RED_TEAM? 0.8:0.9)){
                     fixStartTime = 0;
                     right.setPower(-LINE_SLOW_POWER);
                     left.setPower(-LINE_SLOW_POWER);
@@ -471,7 +471,7 @@ public class ButtonPusher extends DriveOp implements BeaconConstants {
                 } else {
                     right.setPower(0);
                 }
-                if (Math.abs(getDirection()) > (RED_TEAM?82:75)) {
+                if (Math.abs(getDirection()) > (RED_TEAM?79:75)) {
                     right.setPower(0);
                     left.setPower(0);
                     state = nextStates.pop();
